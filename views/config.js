@@ -28,4 +28,4 @@ const BWC_MASTER_KATEGORI = [
     { code: "BELUM COOL", label: "Belum Cool" }
 ];
 
-const BASE_URL_API = "https://script.google.com/macros/s/AKfycbw7upfY0eEY-CIGGeH9o7gSmPCJNqx5dL1dlKDrOe4FmIHDlhIFqb8HeBQkMP4ycOsp/exec"
+const BASE_URL_API = "https://script.google.com/macros/s/AKfycbx0YrAlPpDURMJ8cqVjSo-dAdCmmCvNUDvvW0QwuwqT6RyoR1RdFvV1NEBRPFpR9jzi/exec"
