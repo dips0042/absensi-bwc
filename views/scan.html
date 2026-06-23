@@ -34,7 +34,8 @@
                 <h3 class="fw-bold m-0">📷 QR CARD SCANNER</h3>
                 <p class="text-muted small m-0">Arahkan kartu QR jemaat BWC ke kamera</p>
             </div>
-            <a href="/dashboard" class="btn btn-sm btn-outline-dark px-3 py-2 rounded-pill fw-semibold">Kembali ke Dashboard</a>
+            <!-- Diarahkan kembali ke Portal Utama index.html -->
+            <a href="../index.html" class="btn btn-sm btn-outline-dark px-3 py-2 rounded-pill fw-semibold">Kembali ke Portal</a>
         </div>
 
         <div class="card card-custom p-4 mb-4 shadow-sm">
@@ -72,6 +73,9 @@
         </div>
     </div>
 
+    <!-- PANGGIL CONFIG TERLEBIH DAHULU (Satu folder dengan html ini) -->
+    <script src="config.js"></script>
+
     <script>
         let html5QrcodeScanner;
         let masterJemaat = [];
@@ -90,6 +94,7 @@
             html5QrcodeScanner.render(onScanSuccess, onScanFailure);
         }
 
+        // --- CORE PROSES 1: JALUR SCAN QR CARD ---
         async function onScanSuccess(decodedText, decodedResult) {
             const resultDiv = document.getElementById('scanResult');
             resultDiv.className = "mt-3 alert alert-info text-center fw-bold small";
@@ -99,18 +104,22 @@
             html5QrcodeScanner.clear();
 
             try {
-                const res = await fetch('/api/scan/manual', {
+                // Diarahkan langsung ke cloud Google Sheets dengan status default absenNormal
+                const res = await fetch(BASE_URL_API, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: decodedText.trim() })
+                    body: JSON.stringify({ 
+                        action: 'absenNormal', 
+                        id: decodedText.trim() 
+                    })
                 });
                 const data = await res.json();
                 
                 resultDiv.className = "mt-3 alert text-center fw-bold small " + (data.success ? "alert-success" : "alert-danger");
-                resultDiv.innerText = data.success ? `✅ Absensi Berhasil Tercatat!` : `❌ ${data.message}`;
+                resultDiv.innerText = data.success ? `✅ Absensi Sukses: ${data.nama}!` : `❌ ${data.message}`;
             } catch (err) {
+                console.error(err);
                 resultDiv.className = "mt-3 alert alert-danger text-center fw-bold small";
-                resultDiv.innerText = "❌ Gagal terhubung ke server.";
+                resultDiv.innerText = "❌ Gagal terhubung ke Google Sheets.";
             }
 
             setTimeout(() => {
@@ -121,6 +130,7 @@
 
         function onScanFailure(error) { }
 
+        // --- AMBIL MASTER DATA JEMAAT ---
         async function loadDaftarJemaatMaster() {
             try {
                 const res = await fetch(BASE_URL_API + '?action=getJemaat');
@@ -143,7 +153,6 @@
                     return;
                 }
 
-                // Filter berdasarkan Nama Lengkap atau Nama Alias
                 const filtered = masterJemaat.filter(j => 
                     j.nama_lengkap.toLowerCase().includes(query) || 
                     (j.nama_alias && j.nama_alias.toLowerCase().includes(query))
@@ -172,7 +181,6 @@
                 resultsEl.style.display = "block";
             });
 
-            // Tutup hasil pencarian jika klik di luar area input
             document.addEventListener('click', (e) => {
                 if (e.target !== inputEl && e.target !== resultsEl) {
                     resultsEl.style.display = "none";
@@ -180,6 +188,7 @@
             });
         }
 
+        // --- CORE PROSES 2: JALUR MANUAL INPUT DENGAN RADIO BUTTON ---
         async function submitKehadiranManual() {
             const inputEl = document.getElementById('searchJemaatInput');
             const msgEl = document.getElementById('msgStatusManual');
@@ -190,14 +199,20 @@
                 return;
             }
 
+            // Tentukan status action berdasarkan pilihan radio button
+            const actionType = isTelatSelected ? 'absenTelat' : 'absenNormal';
+
             try {
                 const res = await fetch(BASE_URL_API, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: selectedJemaatId })
+                    body: JSON.stringify({ 
+                        action: actionType, 
+                        id: selectedJemaatId 
+                    })
                 });
                 
-                if(res.ok) {
+                const result = await res.json();
+                if(res.ok && result.success) {
                     const namaTerpilih = inputEl.value;
                     inputEl.value = ""; 
                     selectedJemaatId = "";
@@ -213,10 +228,9 @@
                     }
                     setTimeout(() => { msgEl.style.display = "none"; }, 4000);
                 } else {
-                    const err = await res.json();
-                    alert("Gagal mencatat: " + (err.message || "Kemungkinan jemaat sudah diabsen."));
+                    alert("Gagal mencatat: " + (result.message || "Kemungkinan ada kesalahan sistem."));
                 }
-            } catch (e) { alert("Masalah jaringan ke server."); }
+            } catch (e) { alert("Masalah jaringan ke Google Sheets."); }
         }
     </script>
 </body>
