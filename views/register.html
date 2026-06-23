@@ -115,7 +115,6 @@
             </button>
 
             <div class="text-center mt-3">
-                <!-- Diubah jalurnya langsung memanggil file fisik dashboard.html -->
                 <a href="dashboard.html" class="text-secondary small text-decoration-none fw-medium" style="font-size: 13px;">← Kembali ke Dashboard Utama</a>
             </div>
         </form>
@@ -137,8 +136,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- 1. PANGGIL CONFIG.JS SEBELUM SCRIPT UTAMA -->
     <script src="config.js"></script>
 
     <script>
@@ -207,22 +204,23 @@
 
             if (isValidForm) {
                 const btnSubmit = document.getElementById('btnSubmit');
-                const inputWA = document.getElementById('no_whatsapp');
-                const errorWA = document.getElementById('err_no_whatsapp');
 
                 try {
                     btnSubmit.disabled = true;
                     btnSubmit.innerText = "Saving Data...";
 
-                    // 2. TAMBAHKAN PROPERTY ACTION PADA PAYLOAD UNTUK GOOGLE SCRIPT MIKROM
                     const payload = {
                         action: 'addJemaat',
                         ...formData
                     };
 
-                    // 3. DIARAHKAN KE BASE_URL_API CLOUD GOOGLE SHEETS
+                    // Menggunakan text/plain agar tidak memicu CORS Pre-flight di browser
                     const response = await fetch(BASE_URL_API, {
                         method: 'POST',
+                        mode: 'cors',
+                        headers: { 
+                            'Content-Type': 'text/plain;charset=utf-8' 
+                        },
                         body: JSON.stringify(payload)
                     });
 
@@ -232,15 +230,12 @@
                         successModal.show();
                         document.getElementById('formRegistrasi').reset();
                     } else {
-                        inputWA.classList.add('is-invalid');
-                        errorWA.innerText = result.message || "Silakan masukkan data yang sesuai";
-                        errorWA.classList.remove('d-none');
-                        inputWA.focus();
+                        // Jika Google Sheets menolak, munculkan ALERT alasan aslinya dari Apps Script
+                        alert("⚠️ Google Sheets Menolak: " + (result.message || "Aksi POST gagal diproses server."));
                     }
                 } catch (err) {
                     console.error("Terjadi error saat submit data registrasi:", err);
-                    // 4. PESAN ERROR DIUBAH AGAR SESUAI JALUR JARINGAN CLOUD
-                    alert("Gagal terhubung ke Google Sheets. Mohon periksa koneksi internet Anda atau status deploy Apps Script.");
+                    alert("❌ Gagal terhubung ke Google Sheets. Pastikan Anda sudah me-refresh halaman atau cek koneksi internet.");
                 } finally {
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = "Submit Registration";
