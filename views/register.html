@@ -35,7 +35,6 @@
             box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.08) !important;
         }
 
-        /* Border Merah Khusus untuk Field Salah/Kosong */
         .input-custom.is-invalid {
             border-color: #dc3545 !important;
             background-color: #fff8f8 !important;
@@ -58,7 +57,6 @@
             font-weight: 500;
         }
 
-        /* Styling Modal Kustom agar Senada dengan Tema Premium Monokrom */
         .modal-content-custom {
             border-radius: 16px !important;
             border: 1px solid #eaeaea !important;
@@ -95,7 +93,7 @@
             </div>
 
             <div class="mb-3">
-                <label pour="tempat_lahir" class="form-label">Tempat Lahir</label>
+                <label for="tempat_lahir" class="form-label">Tempat Lahir</label>
                 <input type="text" id="tempat_lahir" name="tempat_lahir" class="form-control input-custom" placeholder="Contoh: Jakarta" required>
                 <div class="invalid-feedback-custom d-none" id="err_tempat_lahir">Kolom ini wajib diisi</div>
             </div>
@@ -117,7 +115,8 @@
             </button>
 
             <div class="text-center mt-3">
-                <a href="/dashboard" class="text-secondary small text-decoration-none fw-medium" style="font-size: 13px;">← Kembali ke Dashboard Utama</a>
+                <!-- Diubah jalurnya langsung memanggil file fisik dashboard.html -->
+                <a href="dashboard.html" class="text-secondary small text-decoration-none fw-medium" style="font-size: 13px;">← Kembali ke Dashboard Utama</a>
             </div>
         </form>
     </div>
@@ -138,6 +137,10 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 1. PANGGIL CONFIG.JS SEBELUM SCRIPT UTAMA -->
+    <script src="config.js"></script>
+
     <script>
         const successModal = new bootstrap.Modal(document.getElementById('successModal'));
 
@@ -155,16 +158,13 @@
                 input.classList.remove('is-invalid');
                 errorDiv.classList.add('d-none');
 
-                // 1. CEK JIKA KOLOM KOSONG TOTAL
                 if (!input.value.trim()) {
                     input.classList.add('is-invalid');
                     errorDiv.innerText = "Kolom ini wajib diisi"; 
                     errorDiv.classList.remove('d-none');
                     isValidForm = false;
                 } 
-                // 2. RUN VALIDASI FORMAT JIKA INPUT SUDAH TERISI
                 else {
-                    // Validasi Nomor WhatsApp (Harus diawali 08 dan wajar)
                     if (id === 'no_whatsapp') {
                         const waValue = input.value.trim();
                         if (!waValue.startsWith('08') || waValue.length < 9) {
@@ -174,7 +174,6 @@
                             isValidForm = false;
                         }
                     } 
-                    // Validasi Tanggal Lahir (Bukan Hari Ini / Masa Depan)
                     else if (id === 'tanggal_lahir') {
                         const selectedDate = input.value;
                         const today = new Date();
@@ -190,7 +189,6 @@
                             isValidForm = false;
                         }
                     }
-                    // Validasi Kolom Diajak Siapa (Proteksi kata 'teman' / 'tmn')
                     else if (id === 'diajak_siapa') {
                         const valueDiajak = input.value.trim();
                         const bannedRegex = /^(teman|tmn)$/i;
@@ -204,11 +202,9 @@
                     }
                 }
 
-                // Masukkan data ke payload objek jika lolos pemeriksaan sementara
                 formData[id] = input.value.trim();
             });
 
-            // PROSES AJAX FETCH HANYA JIKA KESELURUHAN FORM DINYATAKAN VALID
             if (isValidForm) {
                 const btnSubmit = document.getElementById('btnSubmit');
                 const inputWA = document.getElementById('no_whatsapp');
@@ -218,20 +214,24 @@
                     btnSubmit.disabled = true;
                     btnSubmit.innerText = "Saving Data...";
 
-                    const response = await fetch('/api/register', {
+                    // 2. TAMBAHKAN PROPERTY ACTION PADA PAYLOAD UNTUK GOOGLE SCRIPT MIKROM
+                    const payload = {
+                        action: 'addJemaat',
+                        ...formData
+                    };
+
+                    // 3. DIARAHKAN KE BASE_URL_API CLOUD GOOGLE SHEETS
+                    const response = await fetch(BASE_URL_API, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(formData)
+                        body: JSON.stringify(payload)
                     });
 
                     const result = await response.json();
 
                     if (response.ok && result.success) {
-                        // Munculkan popup sukses & kosongkan form
                         successModal.show();
                         document.getElementById('formRegistrasi').reset();
                     } else {
-                        // Menangkap error duplikat nomor HP dari backend
                         inputWA.classList.add('is-invalid');
                         errorWA.innerText = result.message || "Silakan masukkan data yang sesuai";
                         errorWA.classList.remove('d-none');
@@ -239,7 +239,8 @@
                     }
                 } catch (err) {
                     console.error("Terjadi error saat submit data registrasi:", err);
-                    alert("Koneksi bermasalah. Mohon periksa apakah berkas database Excel di komputer server sedang ditutup.");
+                    // 4. PESAN ERROR DIUBAH AGAR SESUAI JALUR JARINGAN CLOUD
+                    alert("Gagal terhubung ke Google Sheets. Mohon periksa koneksi internet Anda atau status deploy Apps Script.");
                 } finally {
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = "Submit Registration";
