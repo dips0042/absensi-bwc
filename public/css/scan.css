@@ -1,0 +1,79 @@
+/* public/css/scan.css */
+
+body { 
+    background-color: #fcfcfc; 
+    color: #1a1a1a; 
+    font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+}
+
+.scanner-card { 
+    background-color: #ffffff; 
+    border: 1px solid #eaeaea; 
+    max-width: 500px; 
+    width: 100%; 
+    border-radius: 16px; 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); 
+}
+
+.nav-pills .nav-link { 
+    color: #6c757d; 
+    font-weight: 500; 
+    font-size: 14px; 
+    border-radius: 30px; 
+}
+
+.nav-pills .nav-link.active { 
+    background-color: #1a1a1a !important; 
+    color: white; 
+}
+
+.input-custom { 
+    background-color: #f8f9fa !important; 
+    border: 1px solid #dee2e6 !important; 
+    border-radius: 8px; 
+    padding: 10px 14px; 
+    font-size: 14px; 
+}
+
+.input-custom:focus { 
+    border-color: #1a1a1a !important; 
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.08) !important; 
+}
+
+/* Auto Complete Box Premium */
+.search-suggest-box { 
+    background: white; 
+    border: 1px solid #dee2e6; 
+    border-radius: 8px; 
+    max-height: 220px; 
+    overflow-y: auto; 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05); 
+    position: absolute; 
+    width: 100%; 
+    z-index: 999; 
+}
+
+.suggest-item { 
+    padding: 10px 14px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    border-bottom: 1px solid #f8f9fa; 
+    transition: background 0.2s; 
+    text-align: left; 
+}
+
+.suggest-item:hover { 
+    background-color: #f1f3f5; 
+}
+
+#camera-placeholder { 
+    width: 100%; 
+    height: 250px; 
+    background-color: #222; 
+    border-radius: 12px; 
+    color: #aaa; 
+    font-size: 13px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}

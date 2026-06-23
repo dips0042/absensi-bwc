@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BWC Connect - Data Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #fcfcfc; 
+            color: #1a1a1a; 
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+        }
+        
+        .table-container { 
+            background-color: #ffffff; 
+            border: 1px solid #eaeaea; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+            padding: 24px;
+        }
+
+        .input-custom, .select-custom {
+            background-color: #f8f9fa !important;
+            color: #1a1a1a !important;
+            border: 1px solid #dee2e6 !important;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .input-custom:focus, .select-custom:focus {
+            border-color: #1a1a1a !important;
+            box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.08) !important;
+        }
+
+        .input-custom.is-invalid, .select-custom.is-invalid {
+            border-color: #dc3545 !important;
+            background-color: #fff8f8 !important;
+        }
+
+        .invalid-feedback-custom {
+            font-size: 11px;
+            color: #dc3545;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .table-premium th {
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+            font-size: 13px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .table-premium td { font-size: 14px; vertical-align: middle; }
+
+        .btn-pencil, .btn-qr-download { background: none; border: none; color: #6c757d; font-size: 15px; transition: color 0.2s; }
+        .btn-pencil:hover { color: #1a1a1a; }
+        .btn-qr-download:hover { color: #0d6efd; }
+
+        .modal-content-custom { border-radius: 16px !important; border: 1px solid #eaeaea !important; }
+        .form-label { font-size: 13px; font-weight: 600; color: #495057; }
+    </style>
+</head>
+<body class="py-5">
+
+    <div class="container" style="max-width: 1350px;"> 
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <div>
+                <h2 class="fw-bold text-dark m-0" style="letter-spacing: -0.02em;">⚙️ DATA MANAGEMENT JEMAAT</h2>
+                <p class="text-muted small mt-1 m-0">Kelola, filter, dan perbarui data profil serta komsel jemaat BWC</p>
+            </div>
+            <div class="no-print">
+                <a href="/dashboard" class="btn btn-sm btn-dark fw-semibold px-4 py-2 rounded-pill">← Dashboard</a>
+            </div>
+        </div>
+
+        <div class="row g-2 mb-4">
+            <div class="col-md-6">
+                <input type="text" id="txtSearch" class="form-control input-custom py-2" placeholder="🔍 Cari berdasarkan Nama Lengkap, Alias, atau No. HP...">
+            </div>
+            <div class="col-md-3">
+                <select id="filterCool" class="form-select select-custom py-2">
+                    <option value="">All COOL / Komsel</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="filterStatus" class="form-select select-custom py-2">
+                    <option value="">All Status / Kategori</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover table-premium m-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">No</th>
+                            <th>Nama Lengkap</th>
+                            <th>Nama Alias</th>
+                            <th>No. WhatsApp</th>
+                            <th>Instagram</th>
+                            <th>Tempat Lahir</th>
+                            <th>Tanggal Lahir</th>
+                            <th>COOL / Komsel</th>
+                            <th>Kategori</th>
+                            <th style="width: 100px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyJemaat">
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">Loading database jemaat...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/dashboard" class="text-secondary small text-decoration-none fw-medium">← Kembali ke Dashboard Utama</a>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content modal-content-custom p-4">
+                <div class="modal-header border-0 p-0 mb-3 d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title fw-bold text-dark">✏️ Edit Data Profil Jemaat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <form id="formEditJemaat" novalidate>
+                        <input type="hidden" id="modal_id">
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="modal_nama" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                                <input type="text" id="modal_nama" class="form-control input-custom">
+                                <div class="invalid-feedback-custom d-none" id="err_modal_nama">Nama lengkap wajib diisi</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modal_alias" class="form-label">Nama Alias / Panggilan</label>
+                                <input type="text" id="modal_alias" class="form-control input-custom">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modal_wa" class="form-label">No. WhatsApp <span class="text-danger">*</span></label>
+                                <input type="tel" id="modal_wa" class="form-control input-custom">
+                                <div class="invalid-feedback-custom d-none" id="err_modal_wa">Field ini wajib diisi</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modal_ig" class="form-label">Instagram</label>
+                                <input type="text" id="modal_ig" class="form-control input-custom">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modal_tempat" class="form-label">Tempat Lahir</label>
+                                <input type="text" id="modal_tempat" class="form-control input-custom">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modal_tanggal" class="form-label">Tanggal Lahir</label>
+                                <input type="date" id="modal_tanggal" class="form-control input-custom">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modal_diajak" class="form-label">Diajak Siapa?</label>
+                                <input type="text" id="modal_diajak" class="form-control input-custom">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modal_cool" class="form-label">Assign Komsel / COOL</label>
+                                <select id="modal_cool" class="form-select select-custom"></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="modal_kategori" class="form-label">Status Kategori</label>
+                                <select id="modal_kategori" class="form-select select-custom"></select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-end">
+                            <button type="button" class="btn btn-light rounded-pill px-4 fw-medium me-2" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" id="btnSave" class="btn btn-dark rounded-pill px-4 fw-semibold">Simpan Perubahan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allJemaatData = [];
+        const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const fCool = document.getElementById('filterCool');
+            BWC_MASTER_COOL.forEach(cool => fCool.innerHTML += `<option value="${cool}">${cool}</option>`);
+            
+            const fStat = document.getElementById('filterStatus');
+            BWC_MASTER_KATEGORI.forEach(k => fStat.innerHTML += `<option value="${k.code}">${k.code}</option>`);
+
+            const mCool = document.getElementById('modal_cool');
+            BWC_MASTER_COOL.forEach(cool => mCool.innerHTML += `<option value="${cool}">${cool}</option>`);
+
+            const mKat = document.getElementById('modal_kategori');
+            BWC_MASTER_KATEGORI.forEach(k => mKat.innerHTML += `<option value="${k.code}">${k.label}</option>`);
+
+            fetchAllData();
+        });
+
+        // AMBIL DATA DARI GOOGLE SHEETS
+        async function fetchAllData() {
+            try {
+                const res = await fetch(BASE_URL_API + '?action=getJemaat');
+                allJemaatData = await res.json();
+                allJemaatData.sort((a, b) => a.nama_lengkap.localeCompare(b.nama_lengkap));
+                renderTable(allJemaatData);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('tbodyJemaat').innerHTML = `<tr><td colspan="10" class="text-center text-danger">Gagal memuat database Google Sheets.</td></tr>`;
+            }
+        }
+
+        function formatTanggalIndo(dateString) {
+            if(!dateString) return '-';
+            try {
+                const d = new Date(dateString);
+                if (isNaN(d.getTime())) return dateString.substring(0, 10);
+                const tgl = String(d.getDate()).padStart(2, '0');
+                const bln = String(d.getMonth() + 1).padStart(2, '0');
+                const thn = d.getFullYear();
+                return `${tgl}/${bln}/${thn}`;
+            } catch (e) { return dateString; }
+        }
+
+        function renderTable(dataArray) {
+            const tbody = document.getElementById('tbodyJemaat');
+            if(dataArray.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-3">Tidak ada data jemaat yang cocok.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = dataArray.map((j, index) => {
+                const namaLengkap = j.nama_lengkap || '-';
+                const namaAlias = j.nama_alias || '-';
+                const noWhatsapp = j.no_whatsapp || '-';
+                const instagram = j.instagram || '-';
+                const tempatLahir = j.tempat_lahir || '-';
+                const tanggalLahir = j.tanggal_lahir || '';
+                const diajakSiapa = j.diajak_siapa || '-';
+                const namaKomsel = j.nama_komsel || 'Belum Ada Komsel';
+                const kategori = j.kategori || 'BELUM COOL';
+                const id = j.id;
+
+                const jemaatStringify = JSON.stringify({
+                    id: id,
+                    nama_lengkap: namaLengkap,
+                    nama_alias: namaAlias === '-' ? '' : namaAlias,
+                    no_whatsapp: noWhatsapp === '-' ? '' : noWhatsapp,
+                    instagram: instagram === '-' ? '' : instagram,
+                    tempat_lahir: tempatLahir === '-' ? '' : tempatLahir,
+                    tanggal_lahir: tanggalLahir,
+                    diajak_siapa: diajakSiapa === '-' ? '' : diajakSiapa,
+                    nama_komsel: namaKomsel,
+                    kategori: kategori
+                }).replace(/"/g, '&quot;');
+
+                // Menggunakan API QR gratis dari qrserver untuk download/lihat kartu satuan secara online di HP
+                const qrOnlineLink = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${id}`;
+
+                return `
+                    <tr>
+                        <td class="text-secondary font-monospace">${index + 1}</td>
+                        <td class="fw-bold text-dark">${namaLengkap}</td>
+                        <td class="text-dark fw-medium">${namaAlias}</td>
+                        <td>${noWhatsapp}</td>
+                        <td class="text-secondary">${instagram}</td>
+                        <td>${tempatLahir}</td>
+                        <td class="text-secondary">${formatTanggalIndo(tanggalLahir)}</td>
+                        <td><span class="badge bg-light text-dark border">${namaKomsel}</span></td>
+                        <td><span class="badge bg-dark-subtle text-dark">${kategori}</span></td>
+                        <td class="text-center">
+                            <a href="${qrOnlineLink}" target="_blank" class="btn-qr-download me-2" title="Lihat/Download QR Jemaat">📷</a>
+                            <button class="btn-pencil" onclick="bukaPopupEdit('${jemaatStringify}')" title="Edit Profil">✏️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Live Toolbar Filters
+        const txtSearch = document.getElementById('txtSearch');
+        const filterCool = document.getElementById('filterCool');
+        const filterStatus = document.getElementById('filterStatus');
+
+        [txtSearch, filterCool, filterStatus].forEach(element => {
+            element.addEventListener('input', () => {
+                const searchVal = txtSearch.value.toLowerCase().trim();
+                const coolVal = filterCool.value;
+                const statusVal = filterStatus.value;
+
+                const filtered = allJemaatData.filter(j => {
+                    const matchKeyword = j.nama_lengkap.toLowerCase().includes(searchVal) || 
+                                         j.nama_alias.toLowerCase().includes(searchVal) || 
+                                         j.no_whatsapp.includes(searchVal);
+                    const matchCool = !coolVal || j.nama_komsel === coolVal;
+                    const matchStatus = !statusVal || j.kategori === statusVal;
+                    return matchKeyword && matchCool && matchStatus;
+                });
+                renderTable(filtered);
+            });
+        });
+
+        function bukaPopupEdit(jemaatJsonString) {
+            ['nama', 'wa'].forEach(f => {
+                document.getElementById('modal_' + f).classList.remove('is-invalid');
+                document.getElementById('err_modal_' + f).classList.add('d-none');
+            });
+
+            const jemaatObj = JSON.parse(jemaatJsonString.replace(/&quot;/g, '"'));
+
+            document.getElementById('modal_id').value = jemaatObj.id;
+            document.getElementById('modal_nama').value = jemaatObj.nama_lengkap;
+            document.getElementById('modal_alias').value = jemaatObj.nama_alias;
+            document.getElementById('modal_wa').value = jemaatObj.no_whatsapp;
+            document.getElementById('modal_ig').value = jemaatObj.instagram;
+            document.getElementById('modal_tempat').value = jemaatObj.tempat_lahir;
+            document.getElementById('modal_tanggal').value = jemaatObj.tanggal_lahir ? jemaatObj.tanggal_lahir.substring(0, 10) : '';
+            document.getElementById('modal_diajak').value = jemaatObj.diajak_siapa;
+            document.getElementById('modal_cool').value = jemaatObj.nama_komsel || 'Belum Ada Komsel';
+            document.getElementById('modal_kategori').value = (jemaatObj.kategori || 'BELUM COOL').toUpperCase();
+
+            editModal.show();
+        }
+
+        // SIMPAN HASIL EDIT KE GOOGLE SHEETS
+        document.getElementById('formEditJemaat').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            let isModalValid = true;
+            const requiredFields = [
+                { id: 'nama', key: 'nama_lengkap', label: 'Nama lengkap' },
+                { id: 'wa', key: 'no_whatsapp', label: 'Nomor WhatsApp' }
+            ];
+
+            const payload = { 
+                action: 'updateJemaat', // Beri tanda aksi update ke Google Sheets
+                id: document.getElementById('modal_id').value,
+                nama_alias: document.getElementById('modal_alias').value.trim(),
+                instagram: document.getElementById('modal_ig').value.trim(),
+                tempat_lahir: document.getElementById('modal_tempat').value.trim(),
+                tanggal_lahir: document.getElementById('modal_tanggal').value,
+                diajak_siapa: document.getElementById('modal_diajak').value.trim(),
+                nama_komsel: document.getElementById('modal_cool').value,
+                kategori: document.getElementById('modal_kategori').value
+            };
+
+            requiredFields.forEach(f => {
+                const el = document.getElementById('modal_' + f.id);
+                const err = document.getElementById('err_modal_' + f.id);
+                
+                el.classList.remove('is-invalid');
+                err.classList.add('d-none');
+
+                if (!el.value || !el.value.trim()) {
+                    el.classList.add('is-invalid');
+                    err.innerText = `${f.label} wajib diisi!`;
+                    err.classList.remove('d-none');
+                    isModalValid = false;
+                } else {
+                    payload[f.key] = el.value.trim();
+                }
+            });
+
+            if (isModalValid) {
+                const btnSave = document.getElementById('btnSave');
+                try {
+                    btnSave.disabled = true; btnSave.innerText = "Saving...";
+
+                    const res = await fetch(BASE_URL_API, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await res.json();
+                    if (res.ok && result.success) {
+                        editModal.hide();
+                        alert("✨ Sukses! Data profil jemaat berhasil diperbarui.");
+                        fetchAllData();
+                    } else {
+                        alert("Gagal update data: " + result.message);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Terjadi masalah jaringan ke Google Sheets.");
+                } finally {
+                    btnSave.disabled = false; btnSave.innerText = "Simpan Perubahan";
+                }
+            }
+        });
+    </script>
+</body>
+</html>

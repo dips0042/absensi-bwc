@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly BWC RECAP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link href="/css/dashboard.css" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        .btn-takeout {
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 0 4px;
+            margin-left: 6px;
+            transition: transform 0.2s;
+        }
+        .btn-takeout:hover { transform: scale(1.3); }
+        .badge-telat {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 1px 4px;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+        .list-absen li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body class="py-5">
+    <div class="container" style="max-width: 1140px;">
+        
+        <div class="text-center mb-5 pb-3 border-bottom">
+            <h1 class="fw-bold text-dark m-0" style="font-size: 2.3rem; letter-spacing: -0.03em;">WEEKLY BWC RECAP</h1>
+            <p class="text-muted fw-medium mt-1" id="lblTanggalIbadah">Minggu, -- ------ ----</p>
+            
+            <div class="mt-3 no-print">
+                <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill">Role: <strong class="text-dark" id="lblRole">...</strong></span>
+                <a href="/scan" class="btn btn-sm btn-outline-dark fw-semibold ms-2 px-3 rounded-pill">📸 Open Scanner</a>
+                <a href="/register" class="btn btn-sm btn-outline-dark fw-semibold ms-1 px-3 rounded-pill">📝 Register Member</a>
+                <a href="/edit" class="btn btn-sm btn-outline-dark fw-semibold ms-1 px-3 rounded-pill">⚙️ Data Management</a>
+                <a href="/api/download/database-excel" class="btn btn-sm btn-outline-success fw-semibold ms-1 px-3 rounded-pill">🟢 Unduh Excel Mentah</a>
+                <button onclick="downloadAsPDF()" class="btn btn-sm btn-dark fw-semibold ms-1 px-3 rounded-pill">Download as PDF</button>
+            </div>
+        </div>
+
+        <div class="flex-row-custom mb-5">
+            <div class="flex-col-main">
+                <div class="card card-custom">
+                    <h5 class="section-title mb-4 text-center">Grafik Kehadiran BWC 4 Minggu Terakhir</h5>
+                    <div class="chart-container">
+                        <canvas id="lineChartKehadiran"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex-col-side">
+                <div class="card p-4 h-100 card-custom text-center d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="section-title mb-3" style="font-size: 1.05rem;">Total Kehadiran BWC Minggu Ini</h5>
+                        <div class="box-total-fullwidth">
+                            <div class="display-5 fw-bold text-dark m-0" id="numTotalKehadiran">0</div>
+                        </div>
+                    </div>
+
+                    <div class="text-start">
+                        <table class="table-clean">
+                            <tbody>
+                                <tr><td>FrontLiners (FL)</td><td class="text-center fw-bold text-dark" style="width: 70px;" id="numFL">0</td></tr>
+                                <tr><td>Leaders</td><td class="text-center fw-bold text-dark" id="numLeaders">0</td></tr>
+                                <tr><td>B (Aktif BWC Only)</td><td class="text-center fw-bold text-dark" id="numB">0</td></tr>
+                                <tr><td>BC (Aktif BWC & Cool)</td><td class="text-center fw-bold text-dark" id="numBC">0</td></tr>
+                                <tr><td>C (Aktif Cool Only)</td><td class="text-center fw-bold text-dark" id="numC">0</td></tr>
+                                <tr><td>I (Inaktif)</td><td class="text-center fw-bold text-dark" id="numInaktif">0</td></tr>
+                                <tr><td>JB (Jiwa Baru)</td><td class="text-center fw-bold text-dark" id="numJB">0</td></tr>
+                                <tr><td>Belum Cool</td><td class="text-center fw-bold text-dark" id="numBelumCool">0</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h5 class="section-title mb-3 ps-1">📈 Persentase Kehadiran per internal COOL</h5>
+        <div id="coolChartsGrid" class="row g-3 mb-5"></div>
+
+        <div class="row g-3 mb-5 page-break-before">
+            <div class="col-md-8">
+                <div class="card card-custom p-4 h-100 border-gray-custom">
+                    <h5 class="section-title mb-3 text-danger">❌ List Nama FL yang Absen / Belum Datang</h5>
+                    <div class="row" id="containerFLAbsen">
+                        <div class="col-12 text-muted small italic">Loading data absensi pelayan...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card p-4 card-custom h-100 text-center d-flex flex-column justify-content-center">
+                    <h5 class="section-title mb-3" style="font-size: 0.95rem;">Persentase Kehadiran Jemaat Cool</h5>
+                    <div style="max-width: 140px; margin: 0 auto; width: 100%;">
+                        <canvas id="pieChartCoolRatio"></canvas>
+                    </div>
+                    <div id="legendaCoolRatio" class="small fw-bold mt-3 text-secondary">0 / 0 Orang (0%)</div>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="section-title mb-3 ps-1">📋 Rekap Detail Kehadiran per Cool</h5>
+        <div id="recapCoolContainer" class="row g-3 mb-4"></div>
+
+        <div class="card card-custom p-4 mt-2 border-gray-custom">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="section-title m-0">📝 Keterangan & Catatan Ibadah Hari Ini</h5>
+                <button id="btnSaveLog" onclick="saveKeteranganIbadah()" class="btn btn-sm btn-dark px-3 rounded-pill no-print fw-semibold">Simpan Catatan</button>
+            </div>
+            <textarea id="txtKeteranganIbadah" class="form-control border-light-subtle text-dark" rows="4" placeholder="Tulis catatan penting ibadah hari ini (misal: kondisi cuaca, kendala teknis, atau poin evaluasi...)"></textarea>
+        </div>
+    </div>
+
+    <script src="/config.js"></script>
+    <script>
+        Chart.register(ChartDataLabels);
+        let currentTanggalReal = "";
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const res = await fetch(BASE_URL_API + '?action=dashboard');
+                const data = await res.json();
+
+                currentTanggalReal = data.tanggalAktif;
+                const opsiTanggal = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('lblTanggalIbadah').innerText = new Date().toLocaleDateString('id-ID', opsiTanggal);
+                document.getElementById('lblRole').innerText = data.currentUser.role;
+                document.getElementById('txtKeteranganIbadah').value = data.keteranganIbadah || "";
+
+                // --- LINE CHART KEHADIRAN TOTAL MINGGUAN ---
+                const ctxLine = document.getElementById('lineChartKehadiran').getContext('2d');
+                new Chart(ctxLine, {
+                    type: 'line',
+                    data: {
+                        labels: data.trenKehadiran.map(item => item.tanggal),
+                        datasets: [{
+                            data: data.trenKehadiran.map(item => item.jumlah),
+                            borderColor: '#1a1a1a',
+                            backgroundColor: 'rgba(26, 26, 26, 0.05)',
+                            borderWidth: 2.5,
+                            fill: true,
+                            tension: 0.15,
+                            pointBackgroundColor: '#1a1a1a',
+                            pointRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { align: 'top', display: true, color: '#1a1a1a', font: { weight: 'bold', size: 11 } }
+                        },
+                        scales: { y: { display: false }, x: { grid: { display: false } } }
+                    }
+                });
+
+                // --- INITIALIZE DATA PENAMPUNG BREAKDOWN ---
+                let counters = { FL: 0, LEADERS: 0, B: 0, BC: 0, C: 0, I: 0, JB: 0, "BELUM COOL": 0 };
+                let grandTotalHadir = 0;
+                let flAbsenList = [];
+                
+                let totalAnggotaCoolTerdaftar = 0; 
+                let totalAnggotaCoolYangHadir = 0; 
+
+                const gridCool = document.getElementById('coolChartsGrid');
+                const recapCoolContainer = document.getElementById('recapCoolContainer');
+
+                data.reportData.forEach((komsel, index) => {
+                    const isRealCool = komsel.nama_komsel !== 'Belum Ada Komsel';
+
+                    komsel.hadir.forEach(j => {
+                        grandTotalHadir++;
+                        if (isRealCool) {
+                            totalAnggotaCoolTerdaftar++;
+                            totalAnggotaCoolYangHadir++;
+                        }
+                        const kat = j.kategori ? j.kategori.toUpperCase().trim() : 'BELUM COOL';
+                        if (counters.hasOwnProperty(kat)) counters[kat]++;
+                        else counters["BELUM COOL"]++;
+                    });
+
+                    komsel.tidakHadir.forEach(j => {
+                        if (isRealCool) totalAnggotaCoolTerdaftar++; 
+                        const kat = j.kategori ? j.kategori.toUpperCase().trim() : '';
+                        if (kat === 'FL') flAbsenList.push(j.nama_lengkap);
+                    });
+
+                    // --- PIE CHART KECIL INTERNAL PER-COOL ---
+                    if (isRealCool) {
+                        const totalAnggota = komsel.hadir.length + komsel.tidakHadir.length;
+                        const persenHadir = totalAnggota > 0 ? Math.round((komsel.hadir.length / totalAnggota) * 100) : 0;
+
+                        const colCool = document.createElement('div');
+                        colCool.className = 'col-md-3 col-6 text-center mb-2 print-row';
+                        colCool.innerHTML = `
+                            <div class="card p-2 card-custom h-100">
+                                <span class="fw-semibold text-truncate d-block text-dark px-1" style="font-size:12px;">${komsel.nama_komsel}</span>
+                                <div class="cool-pie-container my-2 d-flex align-items-center justify-content-center">
+                                    <canvas id="coolPieChart-${index}"></canvas>
+                                </div>
+                                <span class="badge bg-light text-dark border border-secondary-subtle mt-1">${persenHadir}% Hadir</span>
+                            </div>
+                        `;
+                        gridCool.appendChild(colCool);
+
+                        setTimeout(() => {
+                            new Chart(document.getElementById(`coolPieChart-${index}`).getContext('2d'), {
+                                type: 'pie',
+                                data: {
+                                    labels: ['Hadir', 'Absen'],
+                                    datasets: [{ data: [komsel.hadir.length, komsel.tidakHadir.length], backgroundColor: ['#1a1a1a', '#e9ecef'], borderWidth: 0 }]
+                                },
+                                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } } }
+                            });
+                        }, 30);
+                    }
+
+                    // --- LIST TABEL NAMA BAWAH DENGAN TOMBOL TAKEOUT ❌ ---
+                    let hadirHTML = komsel.hadir.map(j => `
+                        <li>
+                            <div>
+                                ✔ ${j.nama_lengkap} 
+                                <span class="badge bg-light text-secondary border">${j.kategori}</span>
+                                ${j.isTelat ? `<span class="badge-telat">⚠️ Telat</span>` : ''}
+                            </div>
+                            <button onclick="koreksiTakeoutAbsen('${j.id}', '${j.nama_lengkap}')" class="btn-takeout no-print" title="Koreksi / Batalkan Absen">❌</button>
+                        </li>
+                    `).join('');
+                    
+                    let tidakHadirHTML = komsel.tidakHadir.map(j => `<li class="text-muted"><span>✘ ${j.nama_lengkap}</span> <span class="badge bg-light text-muted border" style="opacity:0.6;">${j.kategori}</span></li>`).join('');
+                    
+                    const elDetail = document.createElement('div');
+                    elDetail.className = 'col-12 mb-3 print-row';
+                    elDetail.innerHTML = `
+                        <div class="card card-custom p-4 border-gray-custom">
+                            <h6 class="fw-bold pb-2 border-bottom text-dark">${komsel.nama_komsel}</h6>
+                            <div class="row mt-2">
+                                <div class="col-md-6 mb-2">
+                                    <div class="text-dark small fw-bold mb-1">HADIR (${komsel.hadir.length})</div>
+                                    <ul class="list-absen m-0 p-0" style="list-style:none;">${hadirHTML || '<li class="text-muted small">Belum ada jemaat hadir</li>'}</ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-muted small fw-bold mb-1">ABSEN / BELUM DATANG (${komsel.tidakHadir.length})</div>
+                                    <ul class="list-absen m-0 p-0" style="list-style:none;">${tidakHadirHTML || '<li class="text-muted small">Semua jemaat hadir</li>'}</ul>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    recapCoolContainer.appendChild(elDetail);
+                });
+
+                // --- INJECT VALUE SUMMARY KANAN ---
+                document.getElementById('numTotalKehadiran').innerText = grandTotalHadir;
+                document.getElementById('numFL').innerText = counters["FL"];
+                document.getElementById('numLeaders').innerText = counters["LEADERS"];
+                document.getElementById('numB').innerText = counters["B"];
+                document.getElementById('numBC').innerText = counters["BC"];
+                document.getElementById('numC').innerText = counters["C"];
+                document.getElementById('numInaktif').innerText = counters["I"];
+                document.getElementById('numJB').innerText = counters["JB"];
+                document.getElementById('numBelumCool').innerText = counters["BELUM COOL"];
+
+                // --- RENDERING ABSENSI NAMA FL ---
+                const containerFLAbsen = document.getElementById('containerFLAbsen');
+                if(flAbsenList.length > 0) {
+                    const setengah = Math.ceil(flAbsenList.length / 2);
+                    const kol1 = flAbsenList.slice(0, setengah).map(nama => `<li>• ${nama}</li>`).join('');
+                    const kol2 = flAbsenList.slice(setengah).map(nama => `<li>• ${nama}</li>`).join('');
+                    containerFLAbsen.innerHTML = `
+                        <div class="col-6"><ul class="list-absen text-secondary m-0 p-0" style="list-style:none;">${kol1}</ul></div>
+                        <div class="col-6"><ul class="list-absen text-secondary m-0 p-0" style="list-style:none;">${kol2}</ul></div>
+                    `;
+                } else {
+                    containerFLAbsen.innerHTML = `<div class="col-12 text-muted small italic">Semua FrontLiners hadir minggu ini.</div>`;
+                }
+
+                // --- RENDER PIE CHART PERSENTASE KEHADIRAN JEMAAT COOL ---
+                const totalAnggotaCoolAbsen = totalAnggotaCoolTerdaftar - totalAnggotaCoolYangHadir;
+                new Chart(document.getElementById('pieChartCoolRatio').getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Hadir', 'Absen'],
+                        datasets: [{ data: [totalAnggotaCoolYangHadir, totalAnggotaCoolAbsen], backgroundColor: ['#1a1a1a', '#e9ecef'], borderWidth: 0 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } } }
+                });
+
+                const persenCool = totalAnggotaCoolTerdaftar > 0 ? Math.round((totalAnggotaCoolYangHadir / totalAnggotaCoolTerdaftar) * 100) : 0;
+                document.getElementById('legendaCoolRatio').innerText = `${totalAnggotaCoolYangHadir} / ${totalAnggotaCoolTerdaftar} Anggota Cool Hadir (${persenCool}%)`;
+
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        async function koreksiTakeoutAbsen(idJemaat, namaJemaat) {
+            const yakin = confirm(`⚠️ KOREKSI ABSENSI:\nApakah Anda yakin ingin membatalkan absensi untuk "${namaJemaat}"?\nData akan dikembalikan ke status belum hadir.`);
+            if(!yakin) return;
+
+            try {
+                const res = await fetch(BASE_URL_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: idJemaat })
+                });
+                if(res.ok) window.location.reload();
+                else alert("Gagal membatalkan absensi.");
+            } catch(e) { alert("Masalah jaringan ke server local."); }
+        }
+
+        async function saveKeteranganIbadah() {
+            const btn = document.getElementById('btnSaveLog');
+            const textVal = document.getElementById('txtKeteranganIbadah').value;
+            try {
+                btn.disabled = true; btn.innerText = "Saving...";
+                const res = await fetch('BASE_URL_API', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tanggal: currentTanggalReal, keterangan: textVal })
+                });
+                if(res.ok) alert("Sukses! Catatan log ibadah hari ini disimpan ke Excel.");
+                else alert("Gagal menyimpan.");
+            } catch(e) { alert("Masalah jaringan."); }
+            finally { btn.disabled = false; btn.innerText = "Simpan Catatan"; }
+        }
+
+        function downloadAsPDF() { window.print(); }
+    </script>
+</body>
+</html>

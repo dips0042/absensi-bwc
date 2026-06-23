@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BWC Connect - Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #fcfcfc; 
+            color: #1a1a1a; 
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+        }
+        
+        .register-card { 
+            background-color: #ffffff; 
+            border: 1px solid #eaeaea; 
+            max-width: 550px; 
+            width: 100%; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        .input-custom {
+            background-color: #f8f9fa !important;
+            color: #1a1a1a !important;
+            border: 1px solid #dee2e6 !important;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .input-custom:focus {
+            border-color: #1a1a1a !important;
+            box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.08) !important;
+        }
+
+        /* Border Merah Khusus untuk Field Salah/Kosong */
+        .input-custom.is-invalid {
+            border-color: #dc3545 !important;
+            background-color: #fff8f8 !important;
+        }
+        .input-custom.is-invalid:focus {
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15) !important;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+
+        .invalid-feedback-custom {
+            font-size: 12px;
+            color: #dc3545;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* Styling Modal Kustom agar Senada dengan Tema Premium Monokrom */
+        .modal-content-custom {
+            border-radius: 16px !important;
+            border: 1px solid #eaeaea !important;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08) !important;
+        }
+    </style>
+</head>
+<body class="d-flex align-items-center justify-content-center min-vh-100 p-3">
+
+    <div class="card p-4 m-3 register-card">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-dark m-0" style="letter-spacing: -0.02em;">📝 REGISTRASI JEMAAT BWC</h3>
+            <p class="text-muted small mt-1">Silakan lengkapi seluruh kolom di bawah ini dengan data yang benar</p>
+        </div>
+        
+        <form id="formRegistrasi" novalidate>
+            
+            <div class="mb-3">
+                <label for="nama_lengkap" class="form-label">Nama Lengkap</label>
+                <input type="text" id="nama_lengkap" name="nama_lengkap" class="form-control input-custom" placeholder="Contoh: Reyner Junistio" required>
+                <div class="invalid-feedback-custom d-none" id="err_nama_lengkap">Kolom ini wajib diisi</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="no_whatsapp" class="form-label">No. WhatsApp Active</label>
+                <input type="tel" id="no_whatsapp" name="no_whatsapp" class="form-control input-custom" placeholder="Contoh: 081234567890" required>
+                <div class="invalid-feedback-custom d-none" id="err_no_whatsapp">Kolom ini wajib diisi</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="instagram" class="form-label">Akun Instagram</label>
+                <input type="text" id="instagram" name="instagram" class="form-control input-custom" placeholder="Contoh: @reyner_j" required>
+                <div class="invalid-feedback-custom d-none" id="err_instagram">Kolom ini wajib diisi</div>
+            </div>
+
+            <div class="mb-3">
+                <label pour="tempat_lahir" class="form-label">Tempat Lahir</label>
+                <input type="text" id="tempat_lahir" name="tempat_lahir" class="form-control input-custom" placeholder="Contoh: Jakarta" required>
+                <div class="invalid-feedback-custom d-none" id="err_tempat_lahir">Kolom ini wajib diisi</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="tanggal_lahir" class="form-label">Tanggal Lahir</label>
+                <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="form-control input-custom" required>
+                <div class="invalid-feedback-custom d-none" id="err_tanggal_lahir">Kolom ini wajib diisi</div>
+            </div>
+
+            <div class="mb-4">
+                <label for="diajak_siapa" class="form-label">Diajak Siapa ke BWC?</label>
+                <input type="text" id="diajak_siapa" name="diajak_siapa" class="form-control input-custom" placeholder="Ketik nama teman yang mengajakmu kesini" required>
+                <div class="invalid-feedback-custom d-none" id="err_diajak_siapa">Kolom ini wajib diisi</div>
+            </div>
+
+            <button type="submit" id="btnSubmit" class="btn btn-dark w-100 py-2.5 fw-bold rounded-pill shadow-sm mb-2" style="font-size: 15px;">
+                Submit Registration
+            </button>
+
+            <div class="text-center mt-3">
+                <a href="/dashboard" class="text-secondary small text-decoration-none fw-medium" style="font-size: 13px;">← Kembali ke Dashboard Utama</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal fade" id="successModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
+            <div class="modal-content modal-content-custom p-4 text-center">
+                <div class="mb-3">
+                    <span style="font-size: 3.5rem;">🟢</span>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Registrasi Berhasil!</h4>
+                <p class="text-muted small px-2 mb-4">Data jemaat baru telah sukses disimpan ke sistem database BWC.</p>
+                <button type="button" class="btn btn-dark w-100 py-2 fw-semibold rounded-pill shadow-sm" data-bs-dismiss="modal">
+                    Input Data Selanjutnya
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+
+        document.getElementById('formRegistrasi').addEventListener('submit', async function(e) {
+            e.preventDefault(); 
+            
+            let isValidForm = true;
+            const fields = ['nama_lengkap', 'no_whatsapp', 'instagram', 'tempat_lahir', 'tanggal_lahir', 'diajak_siapa'];
+            const formData = {};
+
+            fields.forEach(id => {
+                const input = document.getElementById(id);
+                const errorDiv = document.getElementById('err_' + id);
+                
+                input.classList.remove('is-invalid');
+                errorDiv.classList.add('d-none');
+
+                // 1. CEK JIKA KOLOM KOSONG TOTAL
+                if (!input.value.trim()) {
+                    input.classList.add('is-invalid');
+                    errorDiv.innerText = "Kolom ini wajib diisi"; 
+                    errorDiv.classList.remove('d-none');
+                    isValidForm = false;
+                } 
+                // 2. RUN VALIDASI FORMAT JIKA INPUT SUDAH TERISI
+                else {
+                    // Validasi Nomor WhatsApp (Harus diawali 08 dan wajar)
+                    if (id === 'no_whatsapp') {
+                        const waValue = input.value.trim();
+                        if (!waValue.startsWith('08') || waValue.length < 9) {
+                            input.classList.add('is-invalid');
+                            errorDiv.innerText = "Silakan masukkan data yang sesuai"; 
+                            errorDiv.classList.remove('d-none');
+                            isValidForm = false;
+                        }
+                    } 
+                    // Validasi Tanggal Lahir (Bukan Hari Ini / Masa Depan)
+                    else if (id === 'tanggal_lahir') {
+                        const selectedDate = input.value;
+                        const today = new Date();
+                        const yyyy = today.getFullYear();
+                        const mm = String(today.getMonth() + 1).padStart(2, '0');
+                        const dd = String(today.getDate()).padStart(2, '0');
+                        const todayString = `${yyyy}-${mm}-${dd}`;
+
+                        if (selectedDate >= todayString) {
+                            input.classList.add('is-invalid');
+                            errorDiv.innerText = "Silakan masukkan data yang sesuai"; 
+                            errorDiv.classList.remove('d-none');
+                            isValidForm = false;
+                        }
+                    }
+                    // Validasi Kolom Diajak Siapa (Proteksi kata 'teman' / 'tmn')
+                    else if (id === 'diajak_siapa') {
+                        const valueDiajak = input.value.trim();
+                        const bannedRegex = /^(teman|tmn)$/i;
+
+                        if (bannedRegex.test(valueDiajak)) {
+                            input.classList.add('is-invalid');
+                            errorDiv.innerText = "Silakan masukkan data yang sesuai"; 
+                            errorDiv.classList.remove('d-none');
+                            isValidForm = false;
+                        }
+                    }
+                }
+
+                // Masukkan data ke payload objek jika lolos pemeriksaan sementara
+                formData[id] = input.value.trim();
+            });
+
+            // PROSES AJAX FETCH HANYA JIKA KESELURUHAN FORM DINYATAKAN VALID
+            if (isValidForm) {
+                const btnSubmit = document.getElementById('btnSubmit');
+                const inputWA = document.getElementById('no_whatsapp');
+                const errorWA = document.getElementById('err_no_whatsapp');
+
+                try {
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerText = "Saving Data...";
+
+                    const response = await fetch('/api/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        // Munculkan popup sukses & kosongkan form
+                        successModal.show();
+                        document.getElementById('formRegistrasi').reset();
+                    } else {
+                        // Menangkap error duplikat nomor HP dari backend
+                        inputWA.classList.add('is-invalid');
+                        errorWA.innerText = result.message || "Silakan masukkan data yang sesuai";
+                        errorWA.classList.remove('d-none');
+                        inputWA.focus();
+                    }
+                } catch (err) {
+                    console.error("Terjadi error saat submit data registrasi:", err);
+                    alert("Koneksi bermasalah. Mohon periksa apakah berkas database Excel di komputer server sedang ditutup.");
+                } finally {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "Submit Registration";
+                }
+            }
+        });
+    </script>
+</body>
+</html>
