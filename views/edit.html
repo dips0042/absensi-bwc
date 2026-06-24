@@ -355,7 +355,24 @@
             const tbody = document.getElementById('tbodyJemaat');
             if(dataArray.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-3">Tidak ada data jemaat yang cocok.</td></tr>`;
-                return;
+                return `
+                    <tr>
+                        <td class="text-secondary font-monospace">${index + 1}</td>
+                        <td class="fw-bold text-dark">${namaLengkap}</td>
+                        <td class="text-dark fw-medium">${namaAlias}</td>
+                        <td>${noWhatsapp}</td>
+                        <td class="text-secondary">${instagram}</td>
+                        <td>${tempatLahir}</td>
+                        <td class="text-secondary">${formatTanggalIndo(tanggalLahir)}</td>
+                        <td><span class="badge bg-light text-dark border">${namaKomsel}</span></td>
+                        <td><span class="badge bg-dark-subtle text-dark">${kategori}</span></td>
+                        <td class="text-center">
+                            <!-- 🔥 FIXED: Parameter ID jemaat (${id}) telah dikembalikan agar QR bisa dibuka -->
+                            <button class="btn-qr-download me-2" onclick="bukaTemplateQrBwc('${id}', '${namaLengkap.replace(/'/g, "\\'")}')" title="Lihat Kartu QR BWC">📷</button>
+                            <button class="btn-pencil" onclick="bukaPopupEdit('${jemaatStringify}')" title="Edit Profil">✏️</button>
+                        </td>
+                    </tr>
+                `;
             }
 
             tbody.innerHTML = dataArray.map((j, index) => {
