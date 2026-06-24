@@ -54,80 +54,73 @@
         .form-label { font-size: 13px; font-weight: 600; color: #495057; }
 
         /* ==========================================================================
-        /* CSS KUSTOM TEMPLATE KARTU QR BWC PREMIUM (Tetap rapi saat di-render)
+        /* STYLE MENYESUAIKAN BERKAS ACUAN: BWC4450_CHARISSE ANGELINE.png
         /* ========================================================================== */
         #captureArea {
-            padding: 10px;
-            background: #fff;
+            padding: 12px;
+            background: #ffffff;
             display: inline-block;
-            border-radius: 16px;
+            border-radius: 28px;
         }
         .bwc-card-id {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #edf0f2 100%);
-            border: 2px solid #1a1a1a;
-            border-radius: 16px;
-            padding: 24px;
-            width: 300px;
+            background: #ffffff;
+            border: 1px solid #e8e8e8;
+            border-radius: 24px;
+            padding: 36px 24px;
+            width: 320px;
             margin: 0 auto;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
             position: relative;
         }
-        .bwc-qr-box canvas, .bwc-qr-box img {
+        .bwc-card-title {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0;
+            color: #1e2022;
+        }
+        .bwc-card-subtitle {
+            font-size: 13px;
+            font-style: italic;
+            font-family: Georgia, serif;
+            color: #8a9296;
+            margin-top: 4px;
+            margin-bottom: 0;
+        }
+        .bwc-card-divider {
+            border-top: 1px solid #dcdde1;
+            margin: 18px 0 28px 0;
+        }
+        .bwc-card-jemaat {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1e2022;
+            margin-bottom: 28px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .bwc-qr-box {
+            background: #fdfdfd;
+            padding: 10px;
+            display: inline-block;
+            margin-bottom: 28px;
+        }
+        .bwc-qr-box svg, .bwc-qr-box canvas, .bwc-qr-box img {
             width: 180px !important;
             height: 180px !important;
             display: block;
             margin: 0 auto;
         }
-        .bwc-card-id::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 6px;
-            background: #1a1a1a;
-            border-top-left-radius: 14px;
-            border-top-right-radius: 14px;
-        }
-        .bwc-card-title {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            margin: 0;
-            color: #1a1a1a;
-        }
-        .bwc-card-subtitle {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: #6c757d;
-            margin-top: 2px;
-            margin-bottom: 20px;
-        }
-        .bwc-card-jemaat {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 16px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            border-bottom: 1px dashed #eaeaea;
-            padding-bottom: 12px;
-        }
-        .bwc-qr-box {
-            background: #ffffff;
-            padding: 14px;
-            border-radius: 12px;
-            display: inline-block;
-            border: 1px solid #f0f0f0;
+        .bwc-card-divider-sm {
+            width: 45px;
+            border-top: 1px solid #e0e0e0;
+            margin: 0 auto 16px auto;
         }
         .bwc-card-footer {
-            margin-top: 18px;
-            font-size: 10px;
-            font-weight: 500;
-            color: #bcbcbc;
-            letter-spacing: 0.05em;
+            font-size: 14px;
+            color: #5c6266;
+            font-weight: 400;
         }
 
         /* ==========================================================================
@@ -272,7 +265,7 @@
         </div>
     </div>
 
-    <!-- MODAL 2: ID TEMPLATE KARTU QR DIGITAL BWC -->
+    <!-- MODAL 2: ID TEMPLATE KARTU QR DIGITAL BWC MENURUT BWC4450_CHARISSE ANGELINE.png -->
     <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
             <div class="modal-content modal-content-custom p-4 border-0">
@@ -284,11 +277,12 @@
                     <div class="bwc-card-id">
                         <h3 class="bwc-card-title">BWC</h3>
                         <div class="bwc-card-subtitle">Bride Warrior Community</div>
+                        <div class="bwc-card-divider"></div>
                         <div class="bwc-card-jemaat" id="cardNamaJemaat">Nama Jemaat</div>
-                        <!-- Lapisan Ganda Pembungkus QR Pasif -->
                         <div class="bwc-qr-box">
                             <div id="cardQrContainer"></div>
                         </div>
+                        <div class="bwc-card-divider-sm"></div>
                         <div class="bwc-card-footer">We Glad to See You</div>
                     </div>
                 </div>
@@ -473,28 +467,20 @@
             const container = document.getElementById('cardQrContainer');
             container.innerHTML = ""; 
 
-            // Render QR Code ke div murni
             new QRCode(container, {
                 text: id.toString().trim(),
                 width: 180,
                 height: 180,
                 colorDark: "#1a1a1a",
                 colorLight: "#ffffff",
+                useSVG: true,
                 correctLevel: QRCode.CorrectLevel.H
             });
 
-            // Ambil canvas bawaan dari qrcode.js, paksa jadi image base64 lokal murni
-            setTimeout(() => {
-                const canvasLokal = container.querySelector('canvas');
-                if (canvasLokal) {
-                    const dataUrlMentah = canvasLokal.toDataURL("image/png");
-                    container.innerHTML = `<img src="${dataUrlMentah}" style="width:180px; height:180px; display:block;">`;
-                }
-                qrModal.show();
-            }, 100);
+            qrModal.show();
         }
 
-        // --- DOWNLOAD KARTU SATUAN (DESAIN UTUH) ---
+        // --- DOWNLOAD KARTU SATUAN ---
         function downloadSingleCard() {
             const area = document.getElementById('captureArea');
             const namaFile = document.getElementById('cardNamaJemaat').innerText.trim().replace(/[/\\?%*:|"<>]/g, '-');
@@ -517,7 +503,7 @@
             }
 
             const btnBulk = document.getElementById('btnBulkDownload');
-            const yakin = confirm(`Bulk Card Download:\nSistem akan mengunduh langsung ${checkedBoxes.length} file gambar kartu bergradasi sekaligus ke perangkat Anda.\nLanjutkan?`);
+            const yakin = confirm(`Bulk Card Download:\nSistem akan mengunduh langsung ${checkedBoxes.length} file gambar kartu sekaligus ke perangkat Anda.\nLanjutkan?`);
             if (!yakin) return;
 
             try {
@@ -540,37 +526,28 @@
                             <div class="bwc-card-id">
                                 <h3 class="bwc-card-title">BWC</h3>
                                 <div class="bwc-card-subtitle">Bride Warrior Community</div>
+                                <div class="bwc-card-divider"></div>
                                 <div class="bwc-card-jemaat">${namaReal}</div>
                                 <div class="bwc-qr-box">
                                     <div id="bulkQrNode-${id}"></div>
                                 </div>
+                                <div class="bwc-card-divider-sm"></div>
                                 <div class="bwc-card-footer">We Glad to See You</div>
                             </div>
                         </div>
                     `;
 
-                    // Render ke div murni bayangan
                     new QRCode(hiddenDiv.querySelector(`#bulkQrNode-${id}`), {
                         text: id.toString().trim(),
                         width: 180,
                         height: 180,
                         colorDark: "#1a1a1a",
                         colorLight: "#ffffff",
+                        useSVG: true,
                         correctLevel: QRCode.CorrectLevel.H
                     });
 
-                    // Konversi canvas lokal ke Image (Base64) murni sebelum dipotret html2canvas
-                    await new Promise(res => {
-                        setTimeout(() => {
-                            const nodeBox = hiddenDiv.querySelector(`#bulkQrNode-${id}`);
-                            const canvasLokal = nodeBox.querySelector('canvas');
-                            if (canvasLokal) {
-                                const urlGambarAman = canvasLokal.toDataURL("image/png");
-                                nodeBox.innerHTML = `<img src="${urlGambarAman}" style="width:180px; height:180px; display:block;">`;
-                            }
-                            res();
-                        }, 120);
-                    });
+                    await new Promise(res => setTimeout(res, 30));
 
                     const targetCanvas = await html2canvas(hiddenDiv.querySelector('#bulkCaptureTarget'), { scale: 2, logging: false, useCORS: true });
                     
@@ -581,7 +558,7 @@
                     link.click();
                     document.body.removeChild(link);
 
-                    await new Promise(resolve => setTimeout(resolve, 350));
+                    await new Promise(resolve => setTimeout(resolve, 250));
                 }
 
                 document.body.removeChild(hiddenDiv);
@@ -595,7 +572,7 @@
             }
         }
 
-        // SIMPAN HASIL EDIT KE GOOGLE SHEETS
+        // SIMPAN DATA EDIT KE GOOGLE SHEETS
         document.getElementById('formEditJemaat').addEventListener('submit', async (e) => {
             e.preventDefault();
             let isModalValid = true;
@@ -629,7 +606,7 @@
                     const result = await res.json();
                     if (res.ok && result.success) {
                         editModal.hide();
-                        alert("✨ Sukses! Data profil jemaat berhasil diperbarui.");
+                        alert("Sukses! Data profil jemaat berhasil diperbarui.");
                         fetchAllData();
                     }
                 } catch (err) { console.error(err); }
