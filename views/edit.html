@@ -469,19 +469,14 @@
             document.getElementById('cardIdJemaat').innerText = id;
             
             const container = document.getElementById('cardQrContainer');
-            container.innerHTML = ""; // Kosongkan QR lama
-
-            // Menggambar QR langsung di komputer pengguna sebagai teks murni aman CORS
-            new QRCode(container, {
-                text: id.toString().trim(),
-                width: 180,
-                height: 180,
-                colorDark: "#1a1a1a",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
+            // Gunakan Google Chart API dengan parameter chof=png agar langsung dikenali sebagai gambar mentah
+            const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${id}&chld=H|0&chof=png`;
             
-            qrModal.show();
+            container.innerHTML = `<img src="${qrUrl}" crossorigin="anonymous" style="width:180px; height:180px; display:block;">`;
+            
+            // Tunggu gambar terload sempurna sebelum modal ditampilkan sepenuhnya
+            const img = container.querySelector('img');
+            img.onload = () => qrModal.show();
         }
 
         // --- DOWNLOAD KARTU SATUAN (DESAIN UTUH) ---
@@ -525,35 +520,42 @@
                     const id = box.value;
                     const namaReal = box.getAttribute('data-nama');
                     const namaBersihFile = namaReal.trim().replace(/[/\\?%*:|"<>]/g, '-');
+                    const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${id}&chld=H|0&chof=png`;
 
-                    // Bangun ulang struktur kartu bergradasi linear monokrom di folder bayangan
+                    // Bangun struktur kartu dengan tag img Google Chart
                     hiddenDiv.innerHTML = `
                         <div id="bulkCaptureTarget" style="padding:10px; background:#fff; display:inline-block; border-radius:16px;">
                             <div class="bwc-card-id">
                                 <h3 class="bwc-card-title">BWC</h3>
                                 <div class="bwc-card-subtitle">Bride Warrior Community</div>
                                 <div class="bwc-card-jemaat">${namaReal}</div>
-                                <div class="bwc-qr-box" id="bulkQrNode-${id}"></div>
-                                <div class="bwc-card-footer">CARD ID: <span>${id}</span></div>
+                                <div class="bwc-qr-box">
+                                    <img src="${qrUrl}" crossorigin="anonymous" style="width:180px; height:180px; display:block;">
+                                </div>
                             </div>
                         </div>
                     `;
 
-                    // Generate QR Code lokal secara instan di dalam folder bayangan (Garansi Anti-Blank)
-                    new QRCode(hiddenDiv.querySelector(`#bulkQrNode-${id}`), {
-                        text: id.toString().trim(),
-                        width: 180,
-                        height: 180,
-                        colorDark: "#1a1a1a",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.H
+                    // Tunggu browser selesai download gambar QR secara utuh
+                    await new Promise(resolve => {
+                        const img = hiddenDiv.querySelector('img');
+                        if (img.complete) {
+                            resolve();
+                        } else {
+                            img.onload = () => resolve();
+                            img.onerror = () => resolve(); // Antisipasi jika fail agar tidak stuck
+                        }
                     });
 
-                    // Beri jeda mikro 50ms agar engine browser selesai memetakan grafik qr sebelum difoto
-                    await new Promise(res => setTimeout(res, 50));
+                    // Beri jeda ekstra 150ms agar engine grafis browser benar-benar siap
+                    await new Promise(res => setTimeout(res, 150));
 
-                    // Ambil gambar canvas kartu
-                    const targetCanvas = await html2canvas(hiddenDiv.querySelector('#bulkCaptureTarget'), { scale: 2 });
+                    // Ambil gambar canvas kartu (aktifkan useCORS agar gambar eksternal diizinkan difoto)
+                    const targetCanvas = await html2canvas(hiddenDiv.querySelector('#bulkCaptureTarget'), { 
+                        useCORS: true,
+                        allowTaint: false,
+                        scale: 2 
+                    });
                     
                     const link = document.createElement("a");
                     link.download = `${namaBersihFile}.png`;
@@ -562,8 +564,8 @@
                     link.click();
                     document.body.removeChild(link);
 
-                    // Jeda antar download agar browser tidak mendeteksi spam unduhan massal
-                    await new Promise(resolve => setTimeout(resolve, 250));
+                    // Jeda antar download agar browser tidak kewalahan menerima file beruntun
+                    await new Promise(resolve => setTimeout(resolve, 300));
                 }
 
                 document.body.removeChild(hiddenDiv);
@@ -573,7 +575,7 @@
                 alert("❌ Terjadi kesalahan saat merender kartu massal.");
             } finally {
                 btnBulk.disabled = false;
-                btnBulk.innerText = window.innerWidth <= 576 ? "" : "Bulk Download QR Card";
+                btnBulk.innerText = window.innerWidth <= 576 ? "" : "Bulk Download Selected Card";
             }
         }
 
