@@ -54,7 +54,7 @@
         .form-label { font-size: 13px; font-weight: 600; color: #495057; }
 
         /* ==========================================================================
-        /* ✨ CSS KUSTOM TEMPLATE KARTU QR BWC PREMIUM (Tetap rapi saat di-render)
+        /* CSS KUSTOM TEMPLATE KARTU QR BWC PREMIUM (Tetap rapi saat di-render)
         /* ========================================================================== */
         #captureArea {
             padding: 10px;
@@ -77,6 +77,7 @@
             width: 180px !important;
             height: 180px !important;
             display: block;
+            margin: 0 auto;
         }
         .bwc-card-id::before {
             content: '';
@@ -115,7 +116,7 @@
             padding-bottom: 12px;
         }
         .bwc-qr-box {
-            background: #fafafa;
+            background: #ffffff;
             padding: 14px;
             border-radius: 12px;
             display: inline-block;
@@ -130,17 +131,16 @@
         }
 
         /* ==========================================================================
-        /* 📱 RESPONSIVE PINTAR UNTUK LAYAR HP
+        /* RESPONSIVE PINTAR UNTUK LAYAR HP
         /* ========================================================================== */
         @media (max-width: 576px) {
             .responsive-btn span { display: none; }
             .responsive-btn::after { font-size: 16px; font-weight: bold; }
-            .btn-add-member::after { content: "＋"; }
-            .btn-dashboard-nav::after { content: "🏠"; }
+            .btn-add-member::after { content: "+"; }
+            .btn-dashboard-nav::after { content: "Home"; font-size: 14px; font-weight: 600; }
             
-            /* Tombol Bulk Download berubah jadi ikon unduh di HP */
             .btn-bulk-text { display: none; }
-            .btn-bulk-icon::after { content: "📥"; font-size: 14px; }
+            .btn-bulk-icon::after { content: "Download"; font-size: 13px; font-weight: 600; }
             
             .no-print { gap: 4px !important; }
             .responsive-btn, .btn-bulk-icon { padding: 6px 14px !important; }
@@ -167,7 +167,7 @@
 
         <div class="row g-2 mb-4">
             <div class="col-md-6">
-                <input type="text" id="txtSearch" class="form-control input-custom py-2" placeholder="🔍 Cari berdasarkan Nama Lengkap, Alias, atau No. HP...">
+                <input type="text" id="txtSearch" class="form-control input-custom py-2" placeholder="Cari berdasarkan Nama Lengkap, Alias, atau No. HP...">
             </div>
             <div class="col-md-3">
                 <select id="filterCool" class="form-select select-custom py-2">
@@ -215,7 +215,7 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content modal-content-custom p-4">
                 <div class="modal-header border-0 p-0 mb-3 d-flex justify-content-between align-items-center">
-                    <h5 class="modal-title fw-bold text-dark">✏️ Edit Data Profil Jemaat</h5>
+                    <h5 class="modal-title fw-bold text-dark">Edit Data Profil Jemaat</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-0">
@@ -363,13 +363,11 @@
             } catch (e) { return ''; }
         }
 
-        // --- MANAJEMEN CHECKBOX ---
         function toggleSelectAllRows(masterCheckbox) {
             const checkboxes = document.querySelectorAll('.jemaat-checkbox');
             checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
         }
 
-        // --- RENDER TABEL (Koreksi Tuntas) ---
         function renderTable(dataArray) {
             const tbody = document.getElementById('tbodyJemaat');
             document.getElementById('checkAllJemaat').checked = false;
@@ -466,13 +464,12 @@
         // --- FUNCTION POPUP QR SATUAN ---
         function bukaTemplateQrBwc(id, namaLengkap) {
             document.getElementById('cardNamaJemaat').innerText = namaLengkap;
-            document.getElementById('cardIdJemaat').innerText = id;
             
             const container = document.getElementById('cardQrContainer');
-            container.innerHTML = ""; // Bersihkan QR lama
+            container.innerHTML = ""; 
 
-            // 1. Gambar QR Code secara lokal menggunakan library qrcode.js
-            const qrEfek = new QRCode(container, {
+            // 1. Render QR Code lokal
+            new QRCode(container, {
                 text: id.toString().trim(),
                 width: 180,
                 height: 180,
@@ -481,17 +478,15 @@
                 correctLevel: QRCode.CorrectLevel.H
             });
 
-            // 2. Beri jeda 100ms lalu paksa ubah canvas menjadi tag Image lokal
+            // 2. Beri jeda paksa konversi canvas ke Image lokal (menghindari bug rendering asinkronus browser)
             setTimeout(() => {
                 const canvasLokal = container.querySelector('canvas');
                 if (canvasLokal) {
                     const dataUrlMentah = canvasLokal.toDataURL("image/png");
                     container.innerHTML = `<img src="${dataUrlMentah}" style="width:180px; height:180px; display:block;">`;
-                    qrModal.show();
-                } else {
-                    qrModal.show();
                 }
-            }, 100);
+                qrModal.show();
+            }, 150);
         }
 
         // --- DOWNLOAD KARTU SATUAN (DESAIN UTUH) ---
@@ -499,7 +494,7 @@
             const area = document.getElementById('captureArea');
             const namaFile = document.getElementById('cardNamaJemaat').innerText.trim().replace(/[/\\?%*:|"<>]/g, '-');
             
-            html2canvas(area, { useCORS: true, scale: 2 }).then(canvas => {
+            html2canvas(area, { scale: 2, logging: false, useCORS: true }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `${namaFile}.png`;
                 link.href = canvas.toDataURL('image/png');
@@ -507,8 +502,7 @@
             });
         }
 
-        // --- BULK DOWNLOAD KARTU JEMAAT YANG DICEKLIS (DESAIN UTUH) ---
-        // --- BULK DOWNLOAD DIRECT (Garansi 100% Anti-Blank Tanpa Google API / Tanpa ZIP) ---
+        // --- BULK DOWNLOAD DIRECT ---
         async function bulkDownloadQrCards() {
             const checkedBoxes = document.querySelectorAll('.jemaat-checkbox:checked');
             
@@ -518,14 +512,13 @@
             }
 
             const btnBulk = document.getElementById('btnBulkDownload');
-            const yakin = confirm(`BULK CARD DOWNLOAD:\nSistem akan mengunduh langsung ${checkedBoxes.length} file gambar kartu bergradasi sekaligus ke perangkat Anda.\nLanjutkan?`);
+            const yakin = confirm(`Bulk Card Download:\nSistem akan mengunduh langsung ${checkedBoxes.length} file gambar kartu bergradasi sekaligus ke perangkat Anda.\nLanjutkan?`);
             if (!yakin) return;
 
             try {
                 btnBulk.disabled = true;
                 btnBulk.innerText = "Downloading...";
 
-                // Buat wadah tersembunyi (off-screen)
                 const hiddenDiv = document.createElement('div');
                 hiddenDiv.style.position = 'absolute';
                 hiddenDiv.style.left = '-9999px';
@@ -537,7 +530,6 @@
                     const namaReal = box.getAttribute('data-nama');
                     const namaBersihFile = namaReal.trim().replace(/[/\\?%*:|"<>]/g, '-');
 
-                    // Bangun struktur kartu
                     hiddenDiv.innerHTML = `
                         <div id="bulkCaptureTarget" style="padding:10px; background:#fff; display:inline-block; border-radius:16px;">
                             <div class="bwc-card-id">
@@ -550,8 +542,7 @@
                         </div>
                     `;
 
-                    // Generate QR Code lokal di dalam memori internal komputer
-                    const bulkQr = new QRCode(hiddenDiv.querySelector(`#bulkQrNode-${id}`), {
+                    new QRCode(hiddenDiv.querySelector(`#bulkQrNode-${id}`), {
                         text: id.toString().trim(),
                         width: 180,
                         height: 180,
@@ -560,7 +551,7 @@
                         correctLevel: QRCode.CorrectLevel.H
                     });
 
-                    // Konversi paksa dari canvas ke data URL gambar lokal agar html2canvas diizinkan memotretnya
+                    // Konversi canvas lokal ke Image (Base64) di dalam wadah memori sebelum dipotret html2canvas
                     await new Promise(res => {
                         setTimeout(() => {
                             const nodeBox = hiddenDiv.querySelector(`#bulkQrNode-${id}`);
@@ -570,11 +561,10 @@
                                 nodeBox.innerHTML = `<img src="${urlGambarAman}" style="width:180px; height:180px; display:block;">`;
                             }
                             res();
-                        }, 80);
+                        }, 150);
                     });
 
-                    // Ambil foto component jemaat tersebut
-                    const targetCanvas = await html2canvas(hiddenDiv.querySelector('#bulkCaptureTarget'), { scale: 2 });
+                    const targetCanvas = await html2canvas(hiddenDiv.querySelector('#bulkCaptureTarget'), { scale: 2, logging: false, useCORS: true });
                     
                     const link = document.createElement("a");
                     link.download = `${namaBersihFile}.png`;
@@ -583,18 +573,17 @@
                     link.click();
                     document.body.removeChild(link);
 
-                    // Jeda agar browser tidak mendeteksi spam unduhan massal
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    await new Promise(resolve => setTimeout(resolve, 350));
                 }
 
                 document.body.removeChild(hiddenDiv);
-                alert("✅ Sukses! Semua kartu jemaat pilihan berhasil diunduh.");
+                alert("Sukses! Semua kartu jemaat pilihan berhasil diunduh.");
             } catch (err) {
                 console.error(err);
-                alert("❌ Terjadi kesalahan saat merender kartu massal.");
+                alert("Terjadi kesalahan saat merender kartu massal.");
             } finally {
                 btnBulk.disabled = false;
-                btnBulk.innerText = window.innerWidth <= 576 ? "" : "Bulk Download QR Card";
+                btnBulk.innerText = window.innerWidth <= 576 ? "" : "Bulk Download QR";
             }
         }
 
