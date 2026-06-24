@@ -275,7 +275,7 @@
                 
                 <div id="captureArea">
                     <div class="bwc-card-id">
-                        <h3 class="bwc-card-title">⚡ BWC</h3>
+                        <h3 class="bwc-card-title">BWC</h3>
                         <div class="bwc-card-subtitle">Bride Warrior Community</div>
                         <div class="bwc-card-jemaat" id="cardNamaJemaat">Nama Jemaat</div>
                         <div class="bwc-qr-box">
@@ -497,32 +497,30 @@
             }
 
             const btnBulk = document.getElementById('btnBulkDownload');
-            const yakin = confirm(`BULK CARD DOWNLOAD:\nAnda memilih ${checkedBoxes.length} jemaat.\nSistem akan merender seluruh kartu dan menyimpannya ke dalam file ZIP.\nLanjutkan?`);
+            const yakin = confirm(`BULK CARD DOWNLOAD:\nAnda memilih ${checkedBoxes.length} jemaat.\nSistem akan langsung mengunduh ${checkedBoxes.length} file gambar kartu sekaligus ke perangkat Anda.\nLanjutkan?`);
             if (!yakin) return;
 
             try {
                 btnBulk.disabled = true;
-                btnBulk.innerText = "Processing Grid...";
+                btnBulk.innerText = "Downloading...";
 
-                // Buat container bayangan (off-screen) agar proses foto html2canvas tidak mengganggu layar admin
+                // Buat container bayangan (off-screen) untuk merender desain kartu
                 const hiddenDiv = document.createElement('div');
                 hiddenDiv.style.position = 'absolute';
                 hiddenDiv.style.left = '-9999px';
                 hiddenDiv.style.top = '-9999px';
                 document.body.appendChild(hiddenDiv);
 
-                const zip = new JSZip();
-
                 for (let box of checkedBoxes) {
                     const id = box.value;
                     const namaReal = box.getAttribute('data-nama');
                     const namaBersihFile = namaReal.trim().replace(/[/\\?%*:|"<>]/g, '-');
 
-                    // Buat kloningan element desain kartu ke dalam container bayangan
+                    // Kloning struktur template kartu ke dalam container bayangan
                     hiddenDiv.innerHTML = `
                         <div id="bulkCaptureTarget" style="padding:10px; background:#fff; display:inline-block; border-radius:16px;">
                             <div class="bwc-card-id">
-                                <h3 class="bwc-card-title">BWC</h3>
+                                <h3 class="bwc-card-title">⚡ BWC</h3>
                                 <div class="bwc-card-subtitle">Bride Warrior Community</div>
                                 <div class="bwc-card-jemaat">${namaReal}</div>
                                 <div class="bwc-qr-box">
@@ -533,37 +531,36 @@
                         </div>
                     `;
 
-                    // Tunggu gambar QR selesai dimuat oleh browser sebelum difoto
+                    // Tunggu gambar QR selesai dimuat agar tidak blank saat difoto
                     await new Promise(resolve => {
                         const img = hiddenDiv.querySelector('img');
                         if(img.complete) resolve();
                         else img.onload = () => resolve();
                     });
 
-                    // Ambil foto component jemaat tersebut
+                    // Proses foto komponen HTML menggunakan html2canvas
                     const targetCanvas = await html2canvas(hiddenDiv.querySelector('#bulkCaptureTarget'), { useCORS: true, scale: 2 });
-                    const blobImg = await new Promise(res => targetCanvas.toBlob(res, 'image/png'));
                     
-                    // Masukkan data gambar ke dalam struktur ZIP
-                    zip.file(`${namaBersihFile}.png`, blobImg);
+                    // Trigger download langsung ke browser tanpa ZIP
+                    const link = document.createElement("a");
+                    link.download = `${namaBersihFile}.png`;
+                    link.href = targetCanvas.toDataURL('image/png');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    // Beri jeda 300ms antar download agar browser tidak menganggapnya sebagai spam / memblokir unduhan
+                    await new Promise(resolve => setTimeout(resolve, 300));
                 }
 
-                btnBulk.innerText = "Bundling ZIP...";
-                const zipContent = await zip.generateAsync({ type: "blob" });
-                
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(zipContent);
-                link.download = "KARTU_QR_BWC_SELECTED.zip";
-                link.click();
-
                 document.body.removeChild(hiddenDiv);
-                alert("✅ Sukses! File ZIP kartu pilihan berhasil diunduh.");
+                alert("✅ Sukses! Semua kartu jemaat pilihan berhasil diunduh.");
             } catch (err) {
                 console.error(err);
-                alert("❌ Terjadi kesalahan saat merender kartu massal.");
+                alert("❌ Terjadi kesalahan saat memproses unduhan massal.");
             } finally {
                 btnBulk.disabled = false;
-                btnBulk.innerText = "Bulk Download Selected Card";
+                btnBulk.innerText = window.innerWidth <= 576 ? "" : "Bulk Download QR Card";
             }
         }
 
