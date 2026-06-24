@@ -53,7 +53,7 @@
         }
         .table-premium td { font-size: 14px; vertical-align: middle; }
 
-        .btn-pencil, .btn-qr-download { background: none; border: none; color: #6c757d; font-size: 15px; transition: color 0.2s; }
+        .btn-pencil, .btn-qr-download { background: none; border: none; color: #6c757d; font-size: 15px; transition: color 0.2s; cursor: pointer; }
         .btn-pencil:hover { color: #1a1a1a; }
         .btn-qr-download:hover { color: #0d6efd; }
 
@@ -130,11 +130,11 @@
     <div class="container" style="max-width: 1350px;"> 
         <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
             <div>
-                <h2 class="fw-bold text-dark m-0" style="letter-spacing: -0.02em;">DATABASE JEMAAT</h2>
+                <h2 class="fw-bold text-dark m-0" style="letter-spacing: -0.02em;">⚙️ DATA MANAGEMENT JEMAAT</h2>
                 <p class="text-muted small mt-1 m-0">Kelola data seluruh jemaat BWC</p>
             </div>
-            <div class="no-print">
-                <a href="register.html" class="btn btn-sm btn-outline-dark fw-semibold px-4 pr-2 rounded-pill">+ Tambah Jemaat Baru</a>
+            <div class="no-print d-flex gap-2">
+                <a href="register.html" class="btn btn-sm btn-outline-dark fw-semibold px-4 py-2 rounded-pill">+ Tambah Jemaat Baru</a>
                 <a href="dashboard.html" class="btn btn-sm btn-dark fw-semibold px-4 py-2 rounded-pill">← Dashboard</a>
             </div>
         </div>
@@ -290,26 +290,21 @@
             fetchAllData();
         });
 
-        // AMBIL DATA DARI GOOGLE SHEETS (Optimized with LocalStorage Cache)
         async function fetchAllData() {
-            // 1. Cek apakah ada data jemaat versi lama di memori browser
             const cachedData = localStorage.getItem('bwc_cache_jemaat');
             if (cachedData) {
                 allJemaatData = JSON.parse(cachedData);
-                renderTable(allJemaatData); // Jalankan tabel secara instan (0 detik!)
+                renderTable(allJemaatData); 
             }
         
             try {
-                // 2. Tetap ambil data terbaru dari Google Sheets di latar belakang
                 const res = await fetch(BASE_URL_API + '?action=getJemaat');
                 const freshData = await res.json();
                 
                 freshData.sort((a, b) => a.nama_lengkap.localeCompare(b.nama_lengkap));
                 
-                // 3. Simpan data segar ini ke cache untuk kunjungan berikutnya
                 localStorage.setItem('bwc_cache_jemaat', JSON.stringify(freshData));
                 
-                // 4. Update tabel dengan data paling valid dari server
                 allJemaatData = freshData;
                 renderTable(allJemaatData);
             } catch (err) {
@@ -332,13 +327,11 @@
             } catch (e) { return dateString; }
         }
 
-        // Helper filter untuk menormalkan input tanggal ke format standar YYYY-MM-DD
         function bersihkanTanggalKeHtmlForm(dateString) {
             if (!dateString) return '';
             try {
                 const d = new Date(dateString);
                 if (isNaN(d.getTime())) {
-                    // Proteksi jika data sheet berbentuk teks mentah "YYYY-MM-DD ..."
                     if (dateString.length >= 10 && dateString.includes('-')) {
                         return dateString.substring(0, 10);
                     }
@@ -351,28 +344,12 @@
             } catch (e) { return ''; }
         }
 
+        // 🔥 FIXED: Logika render tabel dibersihkan dari tumpang tindih return
         function renderTable(dataArray) {
             const tbody = document.getElementById('tbodyJemaat');
             if(dataArray.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-3">Tidak ada data jemaat yang cocok.</td></tr>`;
-                return `
-                    <tr>
-                        <td class="text-secondary font-monospace">${index + 1}</td>
-                        <td class="fw-bold text-dark">${namaLengkap}</td>
-                        <td class="text-dark fw-medium">${namaAlias}</td>
-                        <td>${noWhatsapp}</td>
-                        <td class="text-secondary">${instagram}</td>
-                        <td>${tempatLahir}</td>
-                        <td class="text-secondary">${formatTanggalIndo(tanggalLahir)}</td>
-                        <td><span class="badge bg-light text-dark border">${namaKomsel}</span></td>
-                        <td><span class="badge bg-dark-subtle text-dark">${kategori}</span></td>
-                        <td class="text-center">
-                            <!-- 🔥 FIXED: Parameter ID jemaat (${id}) telah dikembalikan agar QR bisa dibuka -->
-                            <button class="btn-qr-download me-2" onclick="bukaTemplateQrBwc('${id}', '${namaLengkap.replace(/'/g, "\\'")}')" title="Lihat Kartu QR BWC">📷</button>
-                            <button class="btn-pencil" onclick="bukaPopupEdit('${jemaatStringify}')" title="Edit Profil">✏️</button>
-                        </td>
-                    </tr>
-                `;
+                return;
             }
 
             tbody.innerHTML = dataArray.map((j, index) => {
@@ -400,6 +377,7 @@
                     kategori: kategori
                 }).replace(/"/g, '&quot;');
 
+                // 🔥 FIXED: Baris mapping template tombol memanggil fungsi pop-up resmi
                 return `
                     <tr>
                         <td class="text-secondary font-monospace">${index + 1}</td>
@@ -457,10 +435,7 @@
             document.getElementById('modal_wa').value = jemaatObj.no_whatsapp;
             document.getElementById('modal_ig').value = jemaatObj.instagram;
             document.getElementById('modal_tempat').value = jemaatObj.tempat_lahir;
-            
-            // 🔥 SOLUSI FIXED: Menggunakan saringan tanggal khusus agar lancar dibaca tag <input type="date">
             document.getElementById('modal_tanggal').value = bersihkanTanggalKeHtmlForm(jemaatObj.tanggal_lahir);
-            
             document.getElementById('modal_diajak').value = jemaatObj.diajak_siapa;
             document.getElementById('modal_cool').value = jemaatObj.nama_komsel || 'Belum Ada Komsel';
             document.getElementById('modal_kategori').value = (jemaatObj.kategori || 'BELUM COOL').toUpperCase();
@@ -468,12 +443,11 @@
             editModal.show();
         }
 
-        // 🔥 FUNGSI BARU: Membuka template kartu ID QR BWC yang estetik
+        //Function pembuat pop-up kartu identitas QR resmi dikembalikan utuh
         function bukaTemplateQrBwc(id, namaLengkap) {
             document.getElementById('cardNamaJemaat').innerText = namaLengkap;
             document.getElementById('cardIdJemaat').innerText = id;
             
-            // Pasang engine pembuat QR eksternal ke dalam komponen image modal
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${id}`;
             document.getElementById('cardQrImage').src = qrUrl;
             
