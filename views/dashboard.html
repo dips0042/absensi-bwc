@@ -68,7 +68,7 @@
         <div class="row g-4 mb-5">
             <div class="col-12 col-md-8">
                 <div class="card card-custom h-100">
-                    <h5 class="section-title mb-4 text-center">Grafik Kehadiran BWC 4 Minggu Terakhir</h5>
+                    <h5 class="section-title mb-4 mt-4 text-center">Grafik Kehadiran BWC 4 Minggu Terakhir</h5>
                     <div class="chart-container" style="position: relative; min-height: 320px;">
                         <canvas id="lineChartKehadiran"></canvas>
                     </div>
@@ -102,13 +102,12 @@
             </div>
         </div>
         
-        <h5 class="section-title mb-3 ps-1">📈 Persentase Kehadiran per internal COOL</h5>
+        <h5 class="section-title mb-3 ps-1">📈 Persentase Kehadiran per COOL</h5>
         <div id="coolChartsGrid" class="row g-3 mb-5"></div>
 
         <div class="row g-3 mb-5 page-break-before">
             <div class="col-md-8">
                 <div class="card card-custom p-4 h-100 border-gray-custom">
-                    <!-- JUBAH TEKS DIUBAH SESUAI REQUEST -->
                     <h5 class="section-title mb-3 text-danger">❌ List Nama Frontliners yang Absen</h5>
                     <div class="row" id="containerFLAbsen">
                         <div class="col-12 text-muted small italic">Loading data absensi pelayan...</div>
@@ -135,7 +134,7 @@
                 <h5 class="section-title m-0">Keterangan</h5>
                 <button id="btnSaveLog" onclick="saveKeteranganIbadah()" class="btn btn-sm btn-dark px-3 rounded-pill no-print fw-semibold">Simpan Catatan</button>
             </div>
-            <textarea id="txtKeteranganIbadah" class="form-control border-light-subtle text-dark" rows="4" placeholder="Tulis catatan penting ibadah hari ini (misal: kondisi cuaca, kendala teknis, atau poin evaluasi...)"></textarea>
+            <textarea id="txtKeteranganIbadah" class="form-control border-light-subtle text-dark" rows="4" placeholder="Catatan ibadah hari ini (misal: pembicara, kondisi jika kehadiran menurun drastis, dsb)"></textarea>
         </div>
     </div>
 
