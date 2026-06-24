@@ -211,6 +211,7 @@
         </div>
     </div>
 
+    <!-- MODAL 1: EDIT DATA PROFIL -->
     <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content modal-content-custom p-4">
@@ -271,6 +272,7 @@
         </div>
     </div>
 
+    <!-- MODAL 2: ID TEMPLATE KARTU QR DIGITAL BWC -->
     <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
             <div class="modal-content modal-content-custom p-4 border-0">
@@ -283,7 +285,10 @@
                         <h3 class="bwc-card-title">BWC</h3>
                         <div class="bwc-card-subtitle">Bride Warrior Community</div>
                         <div class="bwc-card-jemaat" id="cardNamaJemaat">Nama Jemaat</div>
-                        <div class="bwc-qr-box" id="cardQrContainer"></div>
+                        <!-- Lapisan Ganda Pembungkus QR Pasif -->
+                        <div class="bwc-qr-box">
+                            <div id="cardQrContainer"></div>
+                        </div>
                         <div class="bwc-card-footer">We Glad to See You</div>
                     </div>
                 </div>
@@ -468,7 +473,7 @@
             const container = document.getElementById('cardQrContainer');
             container.innerHTML = ""; 
 
-            // 1. Render QR Code lokal
+            // Render QR Code ke div murni
             new QRCode(container, {
                 text: id.toString().trim(),
                 width: 180,
@@ -478,7 +483,7 @@
                 correctLevel: QRCode.CorrectLevel.H
             });
 
-            // 2. Beri jeda paksa konversi canvas ke Image lokal (menghindari bug rendering asinkronus browser)
+            // Ambil canvas bawaan dari qrcode.js, paksa jadi image base64 lokal murni
             setTimeout(() => {
                 const canvasLokal = container.querySelector('canvas');
                 if (canvasLokal) {
@@ -486,7 +491,7 @@
                     container.innerHTML = `<img src="${dataUrlMentah}" style="width:180px; height:180px; display:block;">`;
                 }
                 qrModal.show();
-            }, 150);
+            }, 100);
         }
 
         // --- DOWNLOAD KARTU SATUAN (DESAIN UTUH) ---
@@ -536,12 +541,15 @@
                                 <h3 class="bwc-card-title">BWC</h3>
                                 <div class="bwc-card-subtitle">Bride Warrior Community</div>
                                 <div class="bwc-card-jemaat">${namaReal}</div>
-                                <div class="bwc-qr-box" id="bulkQrNode-${id}"></div>
+                                <div class="bwc-qr-box">
+                                    <div id="bulkQrNode-${id}"></div>
+                                </div>
                                 <div class="bwc-card-footer">We Glad to See You</div>
                             </div>
                         </div>
                     `;
 
+                    // Render ke div murni bayangan
                     new QRCode(hiddenDiv.querySelector(`#bulkQrNode-${id}`), {
                         text: id.toString().trim(),
                         width: 180,
@@ -551,7 +559,7 @@
                         correctLevel: QRCode.CorrectLevel.H
                     });
 
-                    // Konversi canvas lokal ke Image (Base64) di dalam wadah memori sebelum dipotret html2canvas
+                    // Konversi canvas lokal ke Image (Base64) murni sebelum dipotret html2canvas
                     await new Promise(res => {
                         setTimeout(() => {
                             const nodeBox = hiddenDiv.querySelector(`#bulkQrNode-${id}`);
@@ -561,7 +569,7 @@
                                 nodeBox.innerHTML = `<img src="${urlGambarAman}" style="width:180px; height:180px; display:block;">`;
                             }
                             res();
-                        }, 150);
+                        }, 120);
                     });
 
                     const targetCanvas = await html2canvas(hiddenDiv.querySelector('#bulkCaptureTarget'), { scale: 2, logging: false, useCORS: true });
