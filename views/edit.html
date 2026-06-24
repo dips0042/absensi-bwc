@@ -293,15 +293,33 @@
             fetchAllData();
         });
 
+        // AMBIL DATA DARI GOOGLE SHEETS (Optimized with LocalStorage Cache)
         async function fetchAllData() {
+            // 1. Cek apakah ada data jemaat versi lama di memori browser
+            const cachedData = localStorage.getItem('bwc_cache_jemaat');
+            if (cachedData) {
+                allJemaatData = JSON.parse(cachedData);
+                renderTable(allJemaatData); // Jalankan tabel secara instan (0 detik!)
+            }
+        
             try {
+                // 2. Tetap ambil data terbaru dari Google Sheets di latar belakang
                 const res = await fetch(BASE_URL_API + '?action=getJemaat');
-                allJemaatData = await res.json();
-                allJemaatData.sort((a, b) => a.nama_lengkap.localeCompare(b.nama_lengkap));
+                const freshData = await res.json();
+                
+                freshData.sort((a, b) => a.nama_lengkap.localeCompare(b.nama_lengkap));
+                
+                // 3. Simpan data segar ini ke cache untuk kunjungan berikutnya
+                localStorage.setItem('bwc_cache_jemaat', JSON.stringify(freshData));
+                
+                // 4. Update tabel dengan data paling valid dari server
+                allJemaatData = freshData;
                 renderTable(allJemaatData);
             } catch (err) {
-                console.error(err);
-                document.getElementById('tbodyJemaat').innerHTML = `<tr><td colspan="10" class="text-center text-danger">Gagal memuat database Google Sheets.</td></tr>`;
+                console.error("Gagal sinkronisasi background:", err);
+                if (!cachedData) {
+                    document.getElementById('tbodyJemaat').innerHTML = `<tr><td colspan="10" class="text-center text-danger">Gagal memuat database Google Sheets.</td></tr>`;
+                }
             }
         }
 
