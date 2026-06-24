@@ -63,7 +63,8 @@
             border-radius: 28px;
         }
         .bwc-card-id {
-            background: #ffffff;
+            /* Ditambahkan Gradasi Halus Monokrom Sesuai Request */
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #edf0f2 100%);
             border: 1px solid #e8e8e8;
             border-radius: 24px;
             padding: 36px 24px;
@@ -101,12 +102,18 @@
             text-transform: uppercase;
         }
         .bwc-qr-box {
-            background: #fdfdfd;
+            background: #ffffff;
             padding: 10px;
             display: inline-block;
             margin-bottom: 28px;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
         }
-        .bwc-qr-box svg, .bwc-qr-box canvas, .bwc-qr-box img {
+        /* Memaksa elemen penampung gambar QR terarsir berdimensi tetap */
+        .bwc-qr-box canvas {
+            display: none !important;
+        }
+        .bwc-qr-box img {
             width: 180px !important;
             height: 180px !important;
             display: block;
@@ -279,9 +286,7 @@
                         <div class="bwc-card-subtitle">Bride Warrior Community</div>
                         <div class="bwc-card-divider"></div>
                         <div class="bwc-card-jemaat" id="cardNamaJemaat">Nama Jemaat</div>
-                        <div class="bwc-qr-box">
-                            <div id="cardQrContainer"></div>
-                        </div>
+                        <div class="bwc-qr-box" id="cardQrContainer"></div>
                         <div class="bwc-card-divider-sm"></div>
                         <div class="bwc-card-footer">We Glad to See You</div>
                     </div>
@@ -460,24 +465,32 @@
             editModal.show();
         }
 
-        // --- FUNCTION POPUP QR SATUAN ---
+        // --- FUNCTION POPUP QR SATUAN (Kunci Menggunakan Canvas Diekstrak) ---
         function bukaTemplateQrBwc(id, namaLengkap) {
             document.getElementById('cardNamaJemaat').innerText = namaLengkap;
             
             const container = document.getElementById('cardQrContainer');
             container.innerHTML = ""; 
 
+            // Gunakan mode kanvas standar komputer
             new QRCode(container, {
                 text: id.toString().trim(),
-                width: 180,
-                height: 180,
+                width: 250,
+                height: 250,
                 colorDark: "#1a1a1a",
                 colorLight: "#ffffff",
-                useSVG: true,
                 correctLevel: QRCode.CorrectLevel.H
             });
 
-            qrModal.show();
+            // 🔥 SOLUSI ABSOLUT ANTI-BLANK: Ekstrak kanvas ke image murni Base64 agar html2canvas diizinkan memotret
+            setTimeout(() => {
+                const canvasAktif = container.querySelector('canvas');
+                if (canvasAktif) {
+                    const base64DataUri = canvasAktif.toDataURL("image/png");
+                    container.innerHTML = `<img src="${base64DataUri}" style="width:180px; height:180px; display:block;">`;
+                }
+                qrModal.show();
+            }, 100);
         }
 
         // --- DOWNLOAD KARTU SATUAN ---
@@ -493,7 +506,7 @@
             });
         }
 
-        // --- BULK DOWNLOAD DIRECT ---
+        // --- BULK DOWNLOAD DIRECT ANTI BLANK ---
         async function bulkDownloadQrCards() {
             const checkedBoxes = document.querySelectorAll('.jemaat-checkbox:checked');
             
@@ -528,26 +541,35 @@
                                 <div class="bwc-card-subtitle">Bride Warrior Community</div>
                                 <div class="bwc-card-divider"></div>
                                 <div class="bwc-card-jemaat">${namaReal}</div>
-                                <div class="bwc-qr-box">
-                                    <div id="bulkQrNode-${id}"></div>
-                                </div>
+                                <div class="bwc-qr-box" id="bulkQrNode-${id}"></div>
                                 <div class="bwc-card-divider-sm"></div>
                                 <div class="bwc-card-footer">We Glad to See You</div>
                             </div>
                         </div>
                     `;
 
+                    // Buat kanvas dasar
                     new QRCode(hiddenDiv.querySelector(`#bulkQrNode-${id}`), {
                         text: id.toString().trim(),
-                        width: 180,
-                        height: 180,
+                        width: 250,
+                        height: 250,
                         colorDark: "#1a1a1a",
                         colorLight: "#ffffff",
-                        useSVG: true,
                         correctLevel: QRCode.CorrectLevel.H
                     });
 
-                    await new Promise(res => setTimeout(res, 30));
+                    // 🔥 KUNCI UTAMA MASAL: Ekstrak konversi kanvas internal massal ke data URL gambar lokal sebelum component difoto
+                    await new Promise(res => {
+                        setTimeout(() => {
+                            const nodeBox = hiddenDiv.querySelector(`#bulkQrNode-${id}`);
+                            const canvasAktif = nodeBox.querySelector('canvas');
+                            if (canvasAktif) {
+                                const urlGambarAman = canvasAktif.toDataURL("image/png");
+                                nodeBox.innerHTML = `<img src="${urlGambarAman}" style="width:180px; height:180px; display:block;">`;
+                            }
+                            res();
+                        }, 120);
+                    });
 
                     const targetCanvas = await html2canvas(hiddenDiv.querySelector('#bulkCaptureTarget'), { scale: 2, logging: false, useCORS: true });
                     
@@ -572,7 +594,7 @@
             }
         }
 
-        // SIMPAN DATA EDIT KE GOOGLE SHEETS
+        // SIMPAN HASIL EDIT KE GOOGLE SHEETS
         document.getElementById('formEditJemaat').addEventListener('submit', async (e) => {
             e.preventDefault();
             let isModalValid = true;
