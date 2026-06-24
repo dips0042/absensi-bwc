@@ -63,7 +63,6 @@
             border-radius: 28px;
         }
         .bwc-card-id {
-            /* Ditambahkan Gradasi Halus Monokrom Sesuai Request */
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #edf0f2 100%);
             border: 1px solid #e8e8e8;
             border-radius: 24px;
@@ -109,7 +108,6 @@
             border: 1px solid #f0f0f0;
             border-radius: 8px;
         }
-        /* Memaksa elemen penampung gambar QR terarsir berdimensi tetap */
         .bwc-qr-box canvas {
             display: none !important;
         }
@@ -139,11 +137,8 @@
             .btn-add-member::after { content: "+"; }
             .btn-dashboard-nav::after { content: "Home"; font-size: 14px; font-weight: 600; }
             
-            .btn-bulk-text { display: none; }
-            .btn-bulk-icon::after { content: "Download"; font-size: 13px; font-weight: 600; }
-            
             .no-print { gap: 4px !important; }
-            .responsive-btn, .btn-bulk-icon { padding: 6px 14px !important; }
+            .responsive-btn { padding: 6px 14px !important; }
         }
     </style>
 </head>
@@ -156,10 +151,6 @@
                 <p class="text-muted small mt-1 m-0">Kelola data seluruh jemaat BWC</p>
             </div>
             <div class="no-print d-flex gap-2">
-                <button type="button" id="btnBulkDownload" onclick="bulkDownloadQrCards()" class="btn btn-sm btn-outline-secondary fw-semibold px-3 py-2 rounded-pill btn-bulk-icon">
-                    <span class="btn-bulk-text">Bulk Download QR</span>
-                </button>
-                
                 <a href="register.html" class="btn btn-sm btn-outline-dark fw-semibold px-4 py-2 rounded-pill responsive-btn btn-add-member"><span>+ Tambah Jemaat Baru</span></a>
                 <a href="dashboard.html" class="btn btn-sm btn-dark fw-semibold px-4 py-2 rounded-pill responsive-btn btn-dashboard-nav"><span>← Dashboard</span></a>
             </div>
@@ -186,9 +177,6 @@
                 <table class="table table-hover table-premium m-0">
                     <thead>
                         <tr>
-                            <th style="width: 40px;" class="text-center no-print">
-                                <input type="checkbox" id="checkAllJemaat" onclick="toggleSelectAllRows(this)">
-                            </th>
                             <th style="width: 50px;">No</th>
                             <th>Nama Lengkap</th>
                             <th>Nama Alias</th>
@@ -203,7 +191,7 @@
                     </thead>
                     <tbody id="tbodyJemaat">
                         <tr>
-                            <td colspan="11" class="text-center text-muted py-4">Loading database jemaat...</td>
+                            <td colspan="10" class="text-center text-muted py-4">Loading database jemaat...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -211,7 +199,6 @@
         </div>
     </div>
 
-    <!-- MODAL 1: EDIT DATA PROFIL -->
     <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content modal-content-custom p-4">
@@ -272,7 +259,6 @@
         </div>
     </div>
 
-    <!-- MODAL 2: ID TEMPLATE KARTU QR DIGITAL BWC MENURUT BWC4450_CHARISSE ANGELINE.png -->
     <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
             <div class="modal-content modal-content-custom p-4 border-0">
@@ -367,17 +353,11 @@
             } catch (e) { return ''; }
         }
 
-        function toggleSelectAllRows(masterCheckbox) {
-            const checkboxes = document.querySelectorAll('.jemaat-checkbox');
-            checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
-        }
-
         function renderTable(dataArray) {
             const tbody = document.getElementById('tbodyJemaat');
-            document.getElementById('checkAllJemaat').checked = false;
             
             if(dataArray.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-3">Tidak ada data jemaat yang cocok.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-3">Tidak ada data jemaat yang cocok.</td></tr>`;
                 return;
             }
 
@@ -403,9 +383,6 @@
 
                 return `
                     <tr>
-                        <td class="text-center no-print">
-                            <input type="checkbox" class="jemaat-checkbox" value="${id}" data-nama="${namaAmanKlik}">
-                        </td>
                         <td class="text-secondary font-monospace">${index + 1}</td>
                         <td class="fw-bold text-dark">${namaLengkap}</td>
                         <td class="text-dark fw-medium">${namaAlias}</td>
@@ -465,14 +442,13 @@
             editModal.show();
         }
 
-        // --- FUNCTION POPUP QR SATUAN (Kunci Menggunakan Canvas Diekstrak) ---
+        // --- FUNCTION POPUP QR SATUAN ---
         function bukaTemplateQrBwc(id, namaLengkap) {
             document.getElementById('cardNamaJemaat').innerText = namaLengkap;
             
             const container = document.getElementById('cardQrContainer');
             container.innerHTML = ""; 
 
-            // Gunakan mode kanvas standar komputer
             new QRCode(container, {
                 text: id.toString().trim(),
                 width: 250,
@@ -482,7 +458,6 @@
                 correctLevel: QRCode.CorrectLevel.H
             });
 
-            // 🔥 SOLUSI ABSOLUT ANTI-BLANK: Ekstrak kanvas ke image murni Base64 agar html2canvas diizinkan memotret
             setTimeout(() => {
                 const canvasAktif = container.querySelector('canvas');
                 if (canvasAktif) {
@@ -504,94 +479,6 @@
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             });
-        }
-
-        // --- BULK DOWNLOAD DIRECT ANTI BLANK ---
-        async function bulkDownloadQrCards() {
-            const checkedBoxes = document.querySelectorAll('.jemaat-checkbox:checked');
-            
-            if (checkedBoxes.length === 0) {
-                alert("Silakan centang terlebih dahulu nama jemaat di tabel yang ingin diunduh kartunya.");
-                return;
-            }
-
-            const btnBulk = document.getElementById('btnBulkDownload');
-            const yakin = confirm(`Bulk Card Download:\nSistem akan mengunduh langsung ${checkedBoxes.length} file gambar kartu sekaligus ke perangkat Anda.\nLanjutkan?`);
-            if (!yakin) return;
-
-            try {
-                btnBulk.disabled = true;
-                btnBulk.innerText = "Downloading...";
-
-                const hiddenDiv = document.createElement('div');
-                hiddenDiv.style.position = 'absolute';
-                hiddenDiv.style.left = '-9999px';
-                hiddenDiv.style.top = '-9999px';
-                document.body.appendChild(hiddenDiv);
-
-                for (let box of checkedBoxes) {
-                    const id = box.value;
-                    const namaReal = box.getAttribute('data-nama');
-                    const namaBersihFile = namaReal.trim().replace(/[/\\?%*:|"<>]/g, '-');
-
-                    hiddenDiv.innerHTML = `
-                        <div id="bulkCaptureTarget" style="padding:10px; background:#fff; display:inline-block; border-radius:16px;">
-                            <div class="bwc-card-id">
-                                <h3 class="bwc-card-title">BWC</h3>
-                                <div class="bwc-card-subtitle">Bride Warrior Community</div>
-                                <div class="bwc-card-divider"></div>
-                                <div class="bwc-card-jemaat">${namaReal}</div>
-                                <div class="bwc-qr-box" id="bulkQrNode-${id}"></div>
-                                <div class="bwc-card-divider-sm"></div>
-                                <div class="bwc-card-footer">We Glad to See You</div>
-                            </div>
-                        </div>
-                    `;
-
-                    // Buat kanvas dasar
-                    new QRCode(hiddenDiv.querySelector(`#bulkQrNode-${id}`), {
-                        text: id.toString().trim(),
-                        width: 250,
-                        height: 250,
-                        colorDark: "#1a1a1a",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-
-                    // 🔥 KUNCI UTAMA MASAL: Ekstrak konversi kanvas internal massal ke data URL gambar lokal sebelum component difoto
-                    await new Promise(res => {
-                        setTimeout(() => {
-                            const nodeBox = hiddenDiv.querySelector(`#bulkQrNode-${id}`);
-                            const canvasAktif = nodeBox.querySelector('canvas');
-                            if (canvasAktif) {
-                                const urlGambarAman = canvasAktif.toDataURL("image/png");
-                                nodeBox.innerHTML = `<img src="${urlGambarAman}" style="width:180px; height:180px; display:block;">`;
-                            }
-                            res();
-                        }, 120);
-                    });
-
-                    const targetCanvas = await html2canvas(hiddenDiv.querySelector('#bulkCaptureTarget'), { scale: 2, logging: false, useCORS: true });
-                    
-                    const link = document.createElement("a");
-                    link.download = `${namaBersihFile}.png`;
-                    link.href = targetCanvas.toDataURL('image/png');
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-
-                    await new Promise(resolve => setTimeout(resolve, 250));
-                }
-
-                document.body.removeChild(hiddenDiv);
-                alert("Sukses! Semua kartu jemaat pilihan berhasil diunduh.");
-            } catch (err) {
-                console.error(err);
-                alert("Terjadi kesalahan saat merender kartu massal.");
-            } finally {
-                btnBulk.disabled = false;
-                btnBulk.innerText = window.innerWidth <= 576 ? "" : "Bulk Download QR";
-            }
         }
 
         // SIMPAN HASIL EDIT KE GOOGLE SHEETS
