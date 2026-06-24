@@ -59,6 +59,70 @@
 
         .modal-content-custom { border-radius: 16px !important; border: 1px solid #eaeaea !important; }
         .form-label { font-size: 13px; font-weight: 600; color: #495057; }
+
+        /* ==========================================================================
+        /* ✨ CSS KUSTOM TEMPLATE KARTU QR BWC PREMIUM
+        /* ========================================================================== */
+        .bwc-card-id {
+            background: #ffffff;
+            border: 1px solid #1a1a1a;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 320px;
+            margin: 0 auto;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .bwc-card-id::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: #1a1a1a;
+        }
+        .bwc-card-title {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin: 0;
+            color: #1a1a1a;
+        }
+        .bwc-card-subtitle {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #6c757d;
+            margin-top: 2px;
+            margin-bottom: 20px;
+        }
+        .bwc-card-jemaat {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border-bottom: 1px dashed #eaeaea;
+            padding-bottom: 12px;
+        }
+        .bwc-qr-box {
+            background: #fafafa;
+            padding: 14px;
+            border-radius: 12px;
+            display: inline-block;
+            border: 1px solid #f0f0f0;
+        }
+        .bwc-card-footer {
+            margin-top: 18px;
+            font-size: 10px;
+            font-weight: 500;
+            color: #bcbcbc;
+            letter-spacing: 0.05em;
+        }
     </style>
 </head>
 <body class="py-5">
@@ -70,7 +134,7 @@
                 <p class="text-muted small mt-1 m-0">Kelola, filter, dan perbarui data profil serta komsel jemaat BWC</p>
             </div>
             <div class="no-print">
-                <a href="/dashboard" class="btn btn-sm btn-dark fw-semibold px-4 py-2 rounded-pill">← Dashboard</a>
+                <a href="dashboard.html" class="btn btn-sm btn-dark fw-semibold px-4 py-2 rounded-pill">← Dashboard</a>
             </div>
         </div>
 
@@ -117,7 +181,7 @@
         </div>
 
         <div class="text-center mt-4">
-            <a href="/dashboard" class="text-secondary small text-decoration-none fw-medium">← Kembali ke Dashboard Utama</a>
+            <a href="dashboard.html" class="text-secondary small text-decoration-none fw-medium">← Kembali ke Dashboard Utama</a>
         </div>
     </div>
 
@@ -183,11 +247,37 @@
         </div>
     </div>
 
+    <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
+            <div class="modal-content modal-content-custom p-4 border-0">
+                <div class="text-end mb-2">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="bwc-card-id">
+                    <h3 class="bwc-card-title">⚡ BWC</h3>
+                    <div class="bwc-card-subtitle">Bride Warrior Community</div>
+                    
+                    <div class="bwc-card-jemaat" id="cardNamaJemaat">Nama Jemaat</div>
+                    
+                    <div class="bwc-qr-box">
+                        <img id="cardQrImage" src="" alt="BWC QR Code" style="width: 200px; height: 200px; display: block;">
+                    </div>
+                    
+                    <div class="bwc-card-footer">CARD ID: <span id="cardIdJemaat">0000</span></div>
+                </div>
+                
+                <p class="text-center text-muted small mt-3 mb-0" style="font-size: 11px;">Silakan screenshot kartu ini untuk dibagikan kepada jemaat.</p>
+            </div>
+        </div>
+    </div>
+
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let allJemaatData = [];
         const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        const qrModal = new bootstrap.Modal(document.getElementById('qrModal'));
 
         window.addEventListener('DOMContentLoaded', () => {
             const fCool = document.getElementById('filterCool');
@@ -205,7 +295,6 @@
             fetchAllData();
         });
 
-        // AMBIL DATA DARI GOOGLE SHEETS
         async function fetchAllData() {
             try {
                 const res = await fetch(BASE_URL_API + '?action=getJemaat');
@@ -228,6 +317,25 @@
                 const thn = d.getFullYear();
                 return `${tgl}/${bln}/${thn}`;
             } catch (e) { return dateString; }
+        }
+
+        // Helper filter untuk menormalkan input tanggal ke format standar YYYY-MM-DD
+        function bersihkanTanggalKeHtmlForm(dateString) {
+            if (!dateString) return '';
+            try {
+                const d = new Date(dateString);
+                if (isNaN(d.getTime())) {
+                    // Proteksi jika data sheet berbentuk teks mentah "YYYY-MM-DD ..."
+                    if (dateString.length >= 10 && dateString.includes('-')) {
+                        return dateString.substring(0, 10);
+                    }
+                    return '';
+                }
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            } catch (e) { return ''; }
         }
 
         function renderTable(dataArray) {
@@ -262,9 +370,6 @@
                     kategori: kategori
                 }).replace(/"/g, '&quot;');
 
-                // Menggunakan API QR gratis dari qrserver untuk download/lihat kartu satuan secara online di HP
-                const qrOnlineLink = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${id}`;
-
                 return `
                     <tr>
                         <td class="text-secondary font-monospace">${index + 1}</td>
@@ -277,7 +382,7 @@
                         <td><span class="badge bg-light text-dark border">${namaKomsel}</span></td>
                         <td><span class="badge bg-dark-subtle text-dark">${kategori}</span></td>
                         <td class="text-center">
-                            <a href="${qrOnlineLink}" target="_blank" class="btn-qr-download me-2" title="Lihat/Download QR Jemaat">📷</a>
+                            <button class="btn-qr-download me-2" onclick="bukaTemplateQrBwc('${id}', '${namaLengkap.replace(/'/g, "\\'")}')" title="Lihat Kartu QR BWC">📷</button>
                             <button class="btn-pencil" onclick="bukaPopupEdit('${jemaatStringify}')" title="Edit Profil">✏️</button>
                         </td>
                     </tr>
@@ -322,12 +427,27 @@
             document.getElementById('modal_wa').value = jemaatObj.no_whatsapp;
             document.getElementById('modal_ig').value = jemaatObj.instagram;
             document.getElementById('modal_tempat').value = jemaatObj.tempat_lahir;
-            document.getElementById('modal_tanggal').value = jemaatObj.tanggal_lahir ? jemaatObj.tanggal_lahir.substring(0, 10) : '';
+            
+            // 🔥 SOLUSI FIXED: Menggunakan saringan tanggal khusus agar lancar dibaca tag <input type="date">
+            document.getElementById('modal_tanggal').value = bersihkanTanggalKeHtmlForm(jemaatObj.tanggal_lahir);
+            
             document.getElementById('modal_diajak').value = jemaatObj.diajak_siapa;
             document.getElementById('modal_cool').value = jemaatObj.nama_komsel || 'Belum Ada Komsel';
             document.getElementById('modal_kategori').value = (jemaatObj.kategori || 'BELUM COOL').toUpperCase();
 
             editModal.show();
+        }
+
+        // 🔥 FUNGSI BARU: Membuka template kartu ID QR BWC yang estetik
+        function bukaTemplateQrBwc(id, namaLengkap) {
+            document.getElementById('cardNamaJemaat').innerText = namaLengkap;
+            document.getElementById('cardIdJemaat').innerText = id;
+            
+            // Pasang engine pembuat QR eksternal ke dalam komponen image modal
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${id}`;
+            document.getElementById('cardQrImage').src = qrUrl;
+            
+            qrModal.show();
         }
 
         // SIMPAN HASIL EDIT KE GOOGLE SHEETS
@@ -341,7 +461,7 @@
             ];
 
             const payload = { 
-                action: 'updateJemaat', // Beri tanda aksi update ke Google Sheets
+                action: 'updateJemaat',
                 id: document.getElementById('modal_id').value,
                 nama_alias: document.getElementById('modal_alias').value.trim(),
                 instagram: document.getElementById('modal_ig').value.trim(),
