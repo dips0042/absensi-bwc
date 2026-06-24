@@ -344,14 +344,16 @@
             } catch (e) { return ''; }
         }
 
-        // 🔥 FIXED: Logika render tabel dibersihkan dari tumpang tindih return
         function renderTable(dataArray) {
             const tbody = document.getElementById('tbodyJemaat');
-            if(dataArray.length === 0) {
+            
+            // 1. Jika data kosong, langsung tampilkan pesan kosong dan KELUAR fungsi (return)
+            if (dataArray.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-3">Tidak ada data jemaat yang cocok.</td></tr>`;
                 return;
             }
 
+            // 2. Jika data ada, langsung map ke elemen tabel dengan aman
             tbody.innerHTML = dataArray.map((j, index) => {
                 const namaLengkap = j.nama_lengkap || '-';
                 const namaAlias = j.nama_alias || '-';
@@ -364,6 +366,7 @@
                 const kategori = j.kategori || 'BELUM COOL';
                 const id = j.id;
 
+                // Membuka bungkus objek jemaat untuk keperluan modal edit
                 const jemaatStringify = JSON.stringify({
                     id: id,
                     nama_lengkap: namaLengkap,
@@ -377,7 +380,9 @@
                     kategori: kategori
                 }).replace(/"/g, '&quot;');
 
-                // 🔥 FIXED: Baris mapping template tombol memanggil fungsi pop-up resmi
+                // Bersihkan nama dari kemungkinan tanda petik satu secara internal untuk onclick
+                const namaAmanKlik = namaLengkap.replace(/'/g, "\\'");
+
                 return `
                     <tr>
                         <td class="text-secondary font-monospace">${index + 1}</td>
@@ -390,14 +395,14 @@
                         <td><span class="badge bg-light text-dark border">${namaKomsel}</span></td>
                         <td><span class="badge bg-dark-subtle text-dark">${kategori}</span></td>
                         <td class="text-center">
-                            <button class="btn-qr-download me-2" onclick="bukaTemplateQrBwc('${id}', '${namaLengkap.replace(/'/g, "\\'")}')" title="Lihat Kartu QR BWC">📷</button>
-                            <button class="btn-pencil" onclick="bukaPopupEdit('${jemaatStringify}')" title="Edit Profil">✏️</button>
+                            <!-- Tombol Kamera Mengarah Langsung ke Fungsi Pop-up Tanpa Hambatan -->
+                            <button type="button" class="btn-qr-download me-2" onclick="bukaTemplateQrBwc('${id}', '${namaAmanKlik}')" title="Lihat Kartu QR BWC">📷</button>
+                            <button type="button" class="btn-pencil" onclick="bukaPopupEdit('${jemaatStringify}')" title="Edit Profil">✏️</button>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
-
         // Live Toolbar Filters
         const txtSearch = document.getElementById('txtSearch');
         const filterCool = document.getElementById('filterCool');
